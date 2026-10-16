@@ -1052,4 +1052,51 @@ def home():
             buffer.getvalue()
         ).decode("utf-8")
 
-     
+        tickets[ticket_id] = ticket
+
+        return render_template_string(
+            PASS_HTML,
+            ticket=ticket,
+            logo=LOGO_PATH,
+            event_name=EVENT_NAME,
+            event_subtitle=EVENT_SUBTITLE,
+            venue=VENUE,
+        )
+
+    return render_template_string(
+        FORM_HTML,
+        logo=LOGO_PATH,
+        event_name=EVENT_NAME,
+        event_subtitle=EVENT_SUBTITLE,
+    )
+
+
+# =========================================================
+# QR VERIFICATION ROUTE
+# =========================================================
+
+@app.route("/verify/<ticket_id>")
+def verify(ticket_id):
+
+    ticket = tickets.get(ticket_id)
+
+    return render_template_string(
+        VERIFY_HTML,
+        ticket=ticket,
+        logo=LOGO_PATH,
+        venue=VENUE,
+    )
+
+
+# =========================================================
+# RUN APPLICATION
+# =========================================================
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+
+    app.run(
+        host="0.0.0.0",
+        port=port,
+        debug=False
+    )
