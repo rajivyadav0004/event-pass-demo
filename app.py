@@ -800,10 +800,11 @@ VERIFY_HTML = """
 
     {% if ticket %}
         <div class="status-icon">✓</div>
-        <h1>Valid QR —/h1>
+        <h1>Valid QR
 
         <p class="verify-message">
-            This secure QR code matches an issued NIET Garba Night Ticket.
+            This secure QR code matches an 
+            issued NIET Garba Night Ticket.
         </p>
 
         <div class="verify-name">{{ ticket.name }}</div>
@@ -839,7 +840,8 @@ VERIFY_HTML = """
 
         <div class="verify-note">
             
-            Event entry must be confirmed by the authorised event organiser.
+            Verified as an authentic ticket.
+            Entry check-in is available only on an authorized gate device.
         </div>
 
         <a class="button"
