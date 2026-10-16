@@ -711,7 +711,7 @@ PASS_HTML = """
             <p>{{ subtitle }}</p>
         </div>
 
-        <div class="entry">SAMPLE PASS</div>
+        <div class="entry">ENTRY PASS</div>
     </header>
 
     <main class="pass-body">
