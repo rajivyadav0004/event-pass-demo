@@ -638,7 +638,7 @@ FORM_HTML = """
     <p><strong>{{ subtitle }}</strong></p>
 
     <div class="sample-note">
-        SAMPLE DEMONSTRATION — NOT AN OFFICIAL EVENT TICKET
+        
     </div>
 
     <form method="post">
