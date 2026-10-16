@@ -622,7 +622,7 @@ FORM_HTML = """
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SilverNova 2026 - Sample Pass</title>
+<title>SilverNova 2026 - Entry Pass</title>
 <style>{{ css }}</style>
 </head>
 <body>
@@ -757,8 +757,8 @@ PASS_HTML = """
         </div>
 
         <aside class="qr-panel">
-            <div class="pill">E-PASS DEMO</div>
-            <h2>QR CODE DETAILS</h2>
+            <div class="pill">E-PASS</div>
+            <h2>GATE VERIFICATION</h2>
 
             <div class="qr-box">
                 <img class="qr-image"
