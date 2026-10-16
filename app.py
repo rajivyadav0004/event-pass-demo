@@ -690,7 +690,7 @@ PASS_HTML = """
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SilverNova 2026 - Sample Pass</title>
+<title>SilverNova 2026 - Entry Pass</title>
 <style>{{ css }}</style>
 </head>
 <body>
