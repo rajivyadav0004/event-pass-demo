@@ -19,10 +19,35 @@ EVENT_SUBTITLE = "GARBA & DJ NIGHT"
 EVENT_DATE = "16 Oct 2026"
 VENUE = "NIET Plot 19 Campus"
 
-# Logo must exist inside the static folder.
-LOGO_PATH = "niet-logo.jpg"
+# Place the logo image inside the static/ folder.
+LOGO_CANDIDATES = (
+    "niet-logo.png",
+    "niet-logo.jpg",
+    "niet-logo.jpeg",
+    "niet-logo.webp",
+    "NIET-logo.png",
+    "NIET-logo.jpg",
+    "logo.png",
+    "logo.jpg",
+)
 
-# Theme
+
+def find_logo_filename():
+    for filename in LOGO_CANDIDATES:
+        filepath = os.path.join(
+            app.static_folder or "static",
+            filename
+        )
+
+        if os.path.isfile(filepath):
+            return filename
+
+    return None
+
+
+LOGO_PATH = find_logo_filename()
+
+# Theme colours
 TEAL = "#168B87"
 BLUE = "#3268AD"
 NAVY = "#18365F"
@@ -81,6 +106,8 @@ body {
     color: white;
 }
 
+/* Colourful dots on the header */
+
 .header::after {
     content: "";
     position: absolute;
@@ -89,15 +116,14 @@ body {
     bottom: 0;
     height: 10px;
 
-    background: repeating-linear-gradient(
-        90deg,
-        #f2d45d 0px,
-        #f2d45d 10px,
-        #9cb8f0 10px,
-        #9cb8f0 20px,
-        #65c5bd 20px,
-        #65c5bd 30px
-    );
+    background-color: #3268ad;
+    background-image:
+        radial-gradient(circle, #f2d45d 4px, transparent 4.5px),
+        radial-gradient(circle, #9cb8f0 4px, transparent 4.5px),
+        radial-gradient(circle, #65c5bd 4px, transparent 4.5px);
+    background-size: 60px 10px, 60px 10px, 60px 10px;
+    background-position: 0 0, 20px 0, 40px 0;
+    background-repeat: repeat-x;
 }
 
 /* LOGO */
@@ -167,12 +193,14 @@ body {
     font-weight: bold;
 }
 
-/* CONTENT */
+/* MAIN CONTENT */
 
 .pass-content {
+    position: relative;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 300px;
-    gap: 28px;
+    grid-template-columns: minmax(0, 1fr) 3px 300px;
+    column-gap: 14px;
+    row-gap: 28px;
     padding: 28px;
 }
 
@@ -183,15 +211,13 @@ body {
     border-right: none;
 }
 
-/* GOLDEN DOTTED SEPARATOR WITH CIRCLES */
+/* GOLDEN DOTTED LINE WITH CIRCLES */
 
-.left-section::after {
-    content: "";
-    position: absolute;
-    top: -28px;
-    bottom: -28px;
-    right: -14px;
+.separator-line {
+    position: relative;
+    align-self: stretch;
     width: 3px;
+    margin: -28px 0;
 
     background: repeating-linear-gradient(
         to bottom,
@@ -202,40 +228,23 @@ body {
     );
 }
 
-.left-section::before {
-    content: "";
+.separator-circle {
     position: absolute;
-    z-index: 2;
-    top: -34px;
-    right: -23px;
-
-    width: 20px;
-    height: 20px;
-    border: 3px solid #d4ad54;
-    border-radius: 50%;
-    background: #f5f8ff;
-
-    box-shadow: 0 calc(100% + 0px) 0 -3px #f5f8ff;
-}
-
-/* Separator end circle */
-
-.pass-content {
-    position: relative;
-}
-
-.separator-end {
-    position: absolute;
-    z-index: 3;
-    left: calc(100% - 314px);
-    bottom: 10px;
-
+    left: 50%;
     width: 20px;
     height: 20px;
     border: 3px solid #d4ad54;
     border-radius: 50%;
     background: #f5f8ff;
     transform: translateX(-50%);
+}
+
+.separator-circle.top {
+    top: -10px;
+}
+
+.separator-circle.bottom {
+    bottom: -10px;
 }
 
 .admit {
@@ -369,7 +378,18 @@ body {
     line-height: 1.6;
 }
 
-/* MOBILE */
+.preview-note {
+    margin-top: 12px;
+    padding: 10px;
+    border-radius: 8px;
+    background: #fff3d7;
+    color: #765b20;
+    font-size: 11px;
+    line-height: 1.5;
+    font-weight: bold;
+}
+
+/* MOBILE RESPONSIVE */
 
 @media (max-width: 760px) {
     body {
@@ -409,16 +429,14 @@ body {
         padding: 18px;
     }
 
+    .separator-line {
+        display: none;
+    }
+
     .left-section {
         padding-right: 0;
         padding-bottom: 25px;
         border-bottom: 3px dashed #d4ad54;
-    }
-
-    .left-section::after,
-    .left-section::before,
-    .separator-end {
-        display: none;
     }
 
     .name {
@@ -458,12 +476,13 @@ body {
         <div class="logo-box">
 
             <img
-                src="{{ url_for('static', filename=logo) }}"
+                src="{{ url_for('static', filename=logo) if logo else '' }}"
                 alt="NIET Greater Noida logo"
                 onerror="
                     this.style.display='none';
                     this.nextElementSibling.style.display='block';
-                ">
+                "
+                {% if not logo %}style="display:none"{% endif %}>
 
             <div class="logo-fallback">
                 NIET Greater Noida
@@ -538,7 +557,10 @@ body {
 
         </section>
 
-        <div class="separator-end"></div>
+        <div class="separator-line" aria-hidden="true">
+            <span class="separator-circle top"></span>
+            <span class="separator-circle bottom"></span>
+        </div>
 
         <aside class="right-section">
 
@@ -550,7 +572,7 @@ body {
 
                 <img
                     src="data:image/png;base64,{{ ticket.qr }}"
-                    alt="QR code for demo ticket">
+                    alt="QR code for pass preview">
 
                 <div class="ticket-number">
                     {{ ticket.id }}
@@ -559,7 +581,11 @@ body {
             </div>
 
             <div class="scan-text">
-                Scan this QR code at the NIET entry gate.
+                Scan this QR code to view pass details.
+            </div>
+
+            <div class="preview-note">
+                UNOFFICIAL PREVIEW — NOT VALID FOR ENTRY
             </div>
 
         </aside>
@@ -571,532 +597,3 @@ body {
 </body>
 </html>
 """
-
-
-# =========================================================
-# QR VERIFICATION PAGE
-# =========================================================
-
-VERIFY_HTML = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<title>NIET Entry Gate - Ticket Lookup</title>
-
-<style>
-* {
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    padding: 20px;
-    background: #eaf0f8;
-    font-family: Arial, Helvetica, sans-serif;
-    color: #18365f;
-}
-
-.card {
-    width: 100%;
-    max-width: 480px;
-    margin: 25px auto;
-    padding: 28px;
-    background: white;
-    border-radius: 24px;
-    border-top: 8px solid #21844d;
-    box-shadow: 0 8px 30px #0001;
-}
-
-.logo {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 110px;
-    margin-bottom: 15px;
-}
-
-.logo img {
-    display: block;
-    width: 100%;
-    max-width: 340px;
-    height: 110px;
-    object-fit: contain;
-}
-
-.status-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 115px;
-    height: 115px;
-    margin: 20px auto;
-    border-radius: 50%;
-    background: #21844d;
-    color: white;
-    font-size: 70px;
-    font-weight: bold;
-}
-
-h1 {
-    margin: 20px 0 10px;
-    color: #18365f;
-    text-align: center;
-    font-size: 30px;
-}
-
-.subtitle {
-    margin: 0 0 25px;
-    color: #526680;
-    text-align: center;
-    font-size: 16px;
-    line-height: 1.5;
-}
-
-.name {
-    margin: 25px 0;
-    color: #234f91;
-    text-align: center;
-    font-size: 29px;
-    font-weight: bold;
-    overflow-wrap: anywhere;
-}
-
-.details {
-    padding: 15px 22px;
-    background: #f8fafc;
-    border: 2px solid #dce4ee;
-    border-radius: 18px;
-}
-
-.row {
-    padding: 16px 0;
-    border-bottom: 1px solid #dce4ee;
-    overflow-wrap: anywhere;
-}
-
-.row:last-child {
-    border-bottom: none;
-}
-
-.label {
-    display: block;
-    margin-bottom: 7px;
-    color: #786b65;
-    font-size: 13px;
-    font-weight: bold;
-    letter-spacing: 0.5px;
-}
-
-.value {
-    color: #30231f;
-    font-size: 19px;
-    font-weight: bold;
-}
-
-.ticket-number {
-    color: #a12c45;
-    overflow-wrap: anywhere;
-}
-
-.notice {
-    margin-top: 22px;
-    padding: 15px;
-    background: #fff3d7;
-    color: #765b20;
-    border-radius: 12px;
-    font-size: 14px;
-    line-height: 1.6;
-    text-align: center;
-}
-
-@media (max-width: 420px) {
-    body {
-        padding: 10px;
-    }
-
-    .card {
-        padding: 20px;
-    }
-
-    h1 {
-        font-size: 26px;
-    }
-
-    .name {
-        font-size: 25px;
-    }
-}
-</style>
-
-</head>
-
-<body>
-
-<div class="card">
-
-    <div class="logo">
-
-        <img
-            src="{{ url_for('static', filename=logo) }}"
-            alt="NIET Greater Noida logo"
-            onerror="this.style.display='none';">
-
-    </div>
-
-    <div class="status-icon">✓</div>
-
-    <h1>NIET ENTRY GATE</h1>
-
-    {% if ticket %}
-
-        <p class="subtitle">
-            Ticket information
-        </p>
-
-        <h2 class="name">
-            {{ ticket.name }}
-        </h2>
-
-        <div class="details">
-
-            <div class="row">
-                <span class="label">COURSE</span>
-                <div class="value">
-                    {{ ticket.course }}
-                </div>
-            </div>
-
-            <div class="row">
-                <span class="label">BRANCH</span>
-                <div class="value">
-                    {{ ticket.branch }}
-                </div>
-            </div>
-
-            <div class="row">
-                <span class="label">YEAR OF STUDY</span>
-                <div class="value">
-                    {{ ticket.year }}
-                </div>
-            </div>
-
-            <div class="row">
-                <span class="label">VENUE</span>
-                <div class="value">
-                    {{ venue }}
-                </div>
-            </div>
-
-            <div class="row">
-                <span class="label">EVENT DATE</span>
-                <div class="value">
-                    {{ ticket.event_date }}
-                </div>
-            </div>
-
-            <div class="row">
-                <span class="label">TICKET NUMBER</span>
-                <div class="value ticket-number">
-                    {{ ticket.id }}
-                </div>
-            </div>
-
-        </div>
-
-        <div class="notice">
-            This page displays information from the
-            demonstration application. Official ticket
-            validity must be confirmed by the event organiser.
-        </div>
-
-    {% else %}
-
-        <p class="subtitle">
-            Ticket not found. This ticket may not exist
-            in the current application session.
-        </p>
-
-    {% endif %}
-
-</div>
-
-</body>
-</html>
-"""
-
-
-# =========================================================
-# REGISTRATION FORM
-# =========================================================
-
-FORM_HTML = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<title>SilverNova 2026 Registration</title>
-
-<style>
-* {
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    padding: 20px;
-    background: #eaf0f8;
-    font-family: Arial, Helvetica, sans-serif;
-    color: #18365f;
-}
-
-.form-box {
-    max-width: 550px;
-    margin: 20px auto;
-    padding: 25px;
-    background: white;
-    border-radius: 18px;
-    border-top: 8px solid #21844d;
-    box-shadow: 0 8px 30px #0001;
-}
-
-.logo {
-    display: block;
-    width: 100%;
-    max-width: 320px;
-    height: 110px;
-    object-fit: contain;
-    margin: auto;
-}
-
-h2 {
-    color: #234f91;
-    text-align: center;
-}
-
-.subtitle {
-    text-align: center;
-}
-
-label {
-    display: block;
-    margin-top: 15px;
-    font-weight: bold;
-}
-
-input, select {
-    width: 100%;
-    padding: 12px;
-    margin-top: 6px;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    font-size: 16px;
-    background: white;
-}
-
-button {
-    width: 100%;
-    padding: 15px;
-    margin-top: 22px;
-    background: linear-gradient(110deg, #168b87, #3268ad);
-    color: white;
-    border: none;
-    border-radius: 9px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.notice {
-    margin-top: 18px;
-    padding: 12px;
-    background: #fff3d7;
-    color: #765b20;
-    border-radius: 8px;
-    font-size: 13px;
-    line-height: 1.5;
-}
-</style>
-
-</head>
-
-<body>
-
-<div class="form-box">
-
-    <img
-        class="logo"
-        src="{{ url_for('static', filename=logo) }}"
-        alt="NIET Greater Noida logo">
-
-    <h2>{{ event_name }}</h2>
-
-    <p class="subtitle">{{ event_subtitle }}</p>
-
-    <div class="notice">
-        Demonstration registration. Official admission
-        requires confirmation from the event organiser.
-    </div>
-
-    <form method="POST" action="{{ url_for('home') }}">
-
-        <label for="name">Full Name</label>
-        <input
-            id="name"
-            name="name"
-            maxlength="100"
-            autocomplete="name"
-            required>
-
-        <label for="event_date">Event Date</label>
-        <input
-            id="event_date"
-            type="date"
-            name="event_date"
-            value="2026-10-16"
-            required>
-
-        <label for="course">Course</label>
-        <select id="course" name="course" required>
-            <option value="B.Tech">B.Tech</option>
-            <option value="MBA">MBA</option>
-            <option value="M.Tech">M.Tech</option>
-            <option value="B.Pharm">B.Pharm</option>
-        </select>
-
-        <label for="branch">Branch</label>
-        <input
-            id="branch"
-            name="branch"
-            placeholder="e.g. Biotechnology"
-            maxlength="100"
-            required>
-
-        <label for="year">Year of Study</label>
-        <select id="year" name="year" required>
-            <option>1st Year</option>
-            <option>2nd Year</option>
-            <option>3rd Year</option>
-            <option>4th Year</option>
-        </select>
-
-        <button type="submit">
-            Generate Pass Preview
-        </button>
-
-    </form>
-
-</div>
-
-</body>
-</html>
-"""
-
-
-# =========================================================
-# HOME ROUTE
-# =========================================================
-
-@app.route("/", methods=["GET", "POST"])
-def home():
-
-    if request.method == "POST":
-
-        name = request.form.get("name", "").strip()
-        raw_date = request.form.get("event_date", "").strip()
-        course = request.form.get("course", "").strip()
-        branch = request.form.get("branch", "").strip()
-        year = request.form.get("year", "").strip()
-
-        if not all([name, raw_date, course, branch, year]):
-            return "Please complete all fields.", 400
-
-        try:
-            parsed_date = datetime.strptime(
-                raw_date, "%Y-%m-%d"
-            )
-            formatted_date = parsed_date.strftime("%d %b %Y")
-
-        except ValueError:
-            return "Invalid event date.", 400
-
-        ticket_id = "DEMO-" + secrets.token_hex(6).upper()
-
-        ticket = {
-            "id": ticket_id,
-            "name": name,
-            "event_date": formatted_date,
-            "course": course,
-            "branch": branch,
-            "year": year,
-        }
-
-        verification_url = url_for(
-            "verify",
-            ticket_id=ticket_id,
-            _external=True
-        )
-
-        qr = qrcode.make(verification_url)
-
-        buffer = io.BytesIO()
-        qr.save(buffer, format="PNG")
-
-        ticket["qr"] = base64.b64encode(
-            buffer.getvalue()
-        ).decode("utf-8")
-
-        tickets[ticket_id] = ticket
-
-        return render_template_string(
-            PASS_HTML,
-            ticket=ticket,
-            logo=LOGO_PATH,
-            event_name=EVENT_NAME,
-            event_subtitle=EVENT_SUBTITLE,
-            venue=VENUE,
-        )
-
-    return render_template_string(
-        FORM_HTML,
-        logo=LOGO_PATH,
-        event_name=EVENT_NAME,
-        event_subtitle=EVENT_SUBTITLE,
-    )
-
-
-# =========================================================
-# QR VERIFICATION ROUTE
-# =========================================================
-
-@app.route("/verify/<ticket_id>")
-def verify(ticket_id):
-
-    ticket = tickets.get(ticket_id)
-
-    return render_template_string(
-        VERIFY_HTML,
-        ticket=ticket,
-        logo=LOGO_PATH,
-        venue=VENUE,
-    )
-
-
-# =========================================================
-# RUN APPLICATION
-# =========================================================
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-
-    app.run(
-        host="0.0.0.0",
-        port=port,
-        debug=False
-    )
