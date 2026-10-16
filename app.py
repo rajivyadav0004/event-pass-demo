@@ -4,8 +4,15 @@ import io
 import base64
 import secrets
 from datetime import date
-from flask import Flask, request, render_template_string, url_for
+
 import qrcode
+from flask import (
+    Flask,
+    request,
+    render_template_string,
+    url_for,
+    abort,
+)
 
 app = Flask(__name__)
 
@@ -14,11 +21,14 @@ EVENT_SUBTITLE = "GARBA & DJ NIGHT"
 DEFAULT_VENUE = "NIET Plot 19 Campus"
 LOGO_FILENAME = "NIET New Engineering Color Logo.jpg"
 
-# Demo storage: restart hone par records clear ho jayenge.
+# Demo records are stored in memory.
+# Restarting the server clears the records.
 tickets = {}
 
 CSS = """
-* { box-sizing: border-box; }
+* {
+    box-sizing: border-box;
+}
 
 body {
     margin: 0;
@@ -29,99 +39,112 @@ body {
 }
 
 .pass {
-    max-width: 1500px;
     width: 100%;
+    max-width: 1500px;
     margin: 10px auto;
-    background: #f5f8ff;
-    border: 4px solid #d4ad54;
+    background: #fff9e9;
+    border: 4px solid #d6b75b;
     border-radius: 24px;
     overflow: hidden;
+    box-shadow: 0 8px 28px #0001;
 }
 
 .header {
     position: relative;
     display: grid;
-    grid-template-columns: 300px minmax(0, 1fr) 200px;
+    grid-template-columns: 260px minmax(0, 1fr) 175px;
+    gap: 24px;
     align-items: center;
-    gap: 25px;
-    padding: 22px 30px 34px;
-    color: white;
-    background: linear-gradient(110deg, #218b89, #3268ad);
-    border-top: 7px solid #e8c75a;
+    padding: 22px 28px 34px;
+    color: #ffe7a0;
+    background: #701329;
+    border-top: 7px solid #e8a02d;
 }
 
 .header::after {
     content: "";
     position: absolute;
-    bottom: 0;
     left: 0;
     right: 0;
+    bottom: 0;
     height: 13px;
     background-image:
-        radial-gradient(circle, #f2d45d 5px, transparent 5.5px),
-        radial-gradient(circle, #9bb8f2 5px, transparent 5.5px);
-    background-size: 30px 13px;
-    background-position: 0 0, 15px 0;
+        radial-gradient(circle, #e8a02d 5px, transparent 5.5px),
+        radial-gradient(circle, #fff0c2 5px, transparent 5.5px),
+        radial-gradient(circle, #c94b91 5px, transparent 5.5px);
+    background-size: 45px 13px;
+    background-position: 0 0, 15px 0, 30px 0;
     background-repeat: repeat-x;
 }
 
 .logo-box {
-    min-height: 110px;
+    min-height: 105px;
     padding: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: white;
-    border-radius: 14px;
-    color: #18365f;
-    font-weight: bold;
-    text-align: center;
+    border-radius: 13px;
 }
 
 .logo {
     display: block;
     width: 100%;
-    height: 100px;
+    height: 95px;
     object-fit: contain;
 }
 
-.small-title { font-size: 16px; font-weight: bold; }
+.event-title {
+    min-width: 0;
+}
+
+.small-title {
+    margin-bottom: 6px;
+    font-size: 15px;
+    font-weight: bold;
+}
 
 .event-title h1 {
-    margin: 8px 0;
-    font-size: clamp(25px, 3vw, 42px);
+    margin: 0;
+    font-size: clamp(25px, 3vw, 40px);
     overflow-wrap: anywhere;
 }
 
-.event-title p { margin: 0; font-size: 20px; font-weight: bold; }
+.event-title p {
+    margin: 8px 0 0;
+    font-size: 19px;
+    font-weight: bold;
+}
 
-.entry {
-    padding: 14px 10px;
-    border: 3px solid #8eafe3;
-    border-radius: 40px;
+.entry-label {
+    padding: 12px 10px;
+    border: 2px solid #d99aab;
+    border-radius: 30px;
     text-align: center;
     font-weight: bold;
 }
 
 .pass-body {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 3px 350px;
+    grid-template-columns: minmax(0, 1fr) 3px 320px;
     gap: 25px;
-    padding: 30px;
+    padding: 28px;
 }
 
-.left { min-width: 0; }
+.left-panel {
+    min-width: 0;
+}
 
-.participant {
+.participant-label {
     margin: 5px 0 18px;
-    color: #234f91;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: bold;
 }
 
 .name {
-    margin-bottom: 28px;
-    font-size: clamp(30px, 4vw, 52px);
+    margin: 0 0 26px;
+    color: #701329;
+    font-size: clamp(28px, 4vw, 48px);
     font-weight: 800;
     overflow-wrap: anywhere;
 }
@@ -129,26 +152,40 @@ body {
 .event-info {
     display: grid;
     grid-template-columns: 1.2fr 1fr;
-    margin-bottom: 25px;
+    gap: 10px;
+    margin-bottom: 20px;
 }
 
-.info-box {
+.event-date,
+.venue {
     min-width: 0;
-    min-height: 135px;
-    padding: 22px;
+    min-height: 120px;
+    padding: 20px;
+    border-radius: 18px;
     color: white;
-    background: linear-gradient(110deg, #168b87, #3268ad);
-    border-radius: 20px;
+    overflow-wrap: anywhere;
+}
+
+.event-date {
+    background: #701329;
+}
+
+.venue {
+    background: #ed7915;
 }
 
 .info-label {
     display: block;
-    margin-bottom: 20px;
-    font-size: 14px;
+    margin-bottom: 18px;
+    font-size: 13px;
     font-weight: bold;
 }
 
-.info-value { font-size: 21px; font-weight: bold; overflow-wrap: anywhere; }
+.info-value {
+    font-size: 21px;
+    font-weight: bold;
+    overflow-wrap: anywhere;
+}
 
 .details {
     display: grid;
@@ -156,34 +193,40 @@ body {
     gap: 12px;
 }
 
-.detail {
+.item {
     min-width: 0;
-    min-height: 120px;
-    padding: 17px;
-    background: #eaf1ff;
-    border: 2px solid #d7c28c;
+    min-height: 112px;
+    padding: 16px;
+    border: 2px solid #e1cf9a;
     border-top: 7px solid #e8c65c;
     border-radius: 12px;
     overflow-wrap: anywhere;
 }
 
-.detail small {
+.item small {
     display: block;
-    margin-bottom: 17px;
-    color: #526680;
-    font-size: 13px;
+    margin-bottom: 14px;
+    color: #786b5e;
+    font-size: 12px;
     font-weight: bold;
 }
 
-.detail strong { font-size: 17px; }
+.item strong {
+    color: #38131c;
+    font-size: 17px;
+}
+
+/* Vertical dotted divider */
 
 .separator {
     position: relative;
     align-self: stretch;
     width: 3px;
-    margin: -30px 0;
+    margin: -28px 0;
     background: repeating-linear-gradient(
-        to bottom, #d4ad54 0 9px, transparent 9px 20px
+        to bottom,
+        #d8b968 0 9px,
+        transparent 9px 20px
     );
 }
 
@@ -192,89 +235,133 @@ body {
     left: 50%;
     width: 40px;
     height: 40px;
-    border: 3px solid #d4ad54;
+    border: 3px solid #d8b968;
     border-radius: 50%;
-    background: #f5f8ff;
+    background: #fff9e9;
     transform: translateX(-50%);
 }
-.circle.top { top: 0; }
-.circle.bottom { bottom: 0; }
 
-.qr-panel { min-width: 0; text-align: center; }
+.circle.top {
+    top: 0;
+}
+
+.circle.bottom {
+    bottom: 0;
+}
+
+/* QR section */
+
+.qr-panel {
+    min-width: 0;
+    padding-left: 22px;
+    border-left: 0;
+    text-align: center;
+}
 
 .pill {
     display: inline-block;
-    margin: 5px 0 20px;
-    padding: 12px 35px;
+    margin: 5px 0 18px;
+    padding: 12px 32px;
     border-radius: 30px;
-    background: linear-gradient(110deg, #168b87, #3268ad);
     color: white;
+    background: #701329;
     font-weight: bold;
 }
 
-.qr-panel h2 { margin: 5px 0 20px; font-size: 22px; }
+.qr-panel h2 {
+    margin: 5px 0 18px;
+    font-size: 20px;
+}
 
 .qr-box {
-    padding: 20px;
-    background: #eaf1ff;
-    border-radius: 22px;
+    width: 100%;
+    padding: 17px;
+    background: #fff1d0;
+    border-radius: 20px;
 }
 
 .qr-image {
     display: block;
     width: 100%;
-    max-width: 270px;
+    max-width: 250px;
     height: auto;
-    padding: 7px;
     margin: auto;
     background: white;
 }
 
 .ticket-number {
-    margin-top: 15px;
+    margin-top: 14px;
+    font-size: 13px;
     font-weight: bold;
-    font-size: 14px;
     overflow-wrap: anywhere;
 }
 
-.hint { margin-top: 20px; color: #687b95; line-height: 1.5; }
+.hint {
+    margin-top: 18px;
+    color: #71665f;
+    line-height: 1.5;
+}
 
 .sample-note {
     margin-top: 16px;
-    padding: 11px;
+    padding: 10px;
     border-radius: 9px;
     background: #fff3d7;
     color: #765b20;
     font-size: 12px;
-    line-height: 1.5;
     font-weight: bold;
+    line-height: 1.5;
 }
 
-.form-card, .verify-card {
+/* Registration and verification cards */
+
+.form-card,
+.verify-card {
     width: 100%;
     max-width: 520px;
-    margin: 25px auto;
+    margin: 22px auto;
     padding: 26px;
     background: white;
     border-radius: 24px;
     box-shadow: 0 8px 30px #0001;
 }
 
-.form-card { border-top: 9px solid #218b89; }
-.form-card h1 { text-align: center; font-size: 26px; }
+.form-card {
+    border-top: 9px solid #701329;
+}
+
+.form-logo,
+.verify-logo {
+    display: block;
+    width: 260px;
+    max-width: 100%;
+    height: 100px;
+    margin: 0 auto 18px;
+    object-fit: contain;
+}
+
+.form-card h1 {
+    text-align: center;
+    color: #701329;
+}
+
+.form-card > p {
+    text-align: center;
+}
 
 label {
     display: block;
-    margin-top: 15px;
+    margin-top: 14px;
     font-weight: bold;
 }
 
-input, select {
+input,
+select {
     width: 100%;
-    margin-top: 6px;
     padding: 12px;
-    border: 1px solid #ccd5e0;
-    border-radius: 8px;
+    margin-top: 6px;
+    border: 1px solid #ccc;
+    border-radius: 7px;
     font-size: 16px;
     background: white;
 }
@@ -282,55 +369,60 @@ input, select {
 .button {
     display: block;
     width: 100%;
-    margin-top: 20px;
     padding: 15px;
-    border: 0;
-    border-radius: 10px;
-    background: linear-gradient(110deg, #168b87, #3268ad);
+    margin-top: 20px;
+    background: linear-gradient(110deg, #701329, #a83d57);
     color: white;
     text-align: center;
     text-decoration: none;
+    border: 0;
+    border-radius: 10px;
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
 }
 
-.verify-card {
-    max-width: 520px;
-    padding: 28px;
-    border-top: 10px solid #218b89;
-    text-align: center;
-}
+/* QR verification page */
 
-.verify-logo {
-    display: block;
-    width: 270px;
-    max-width: 100%;
-    height: 100px;
-    margin: 0 auto 15px;
-    object-fit: contain;
+.verify-card {
+    max-width: 510px;
+    padding: 28px;
+    border-top: 10px solid #21834a;
+    text-align: center;
 }
 
 .status-icon {
     display: flex;
-    width: 110px;
-    height: 110px;
     align-items: center;
     justify-content: center;
+    width: 112px;
+    height: 112px;
     margin: 20px auto;
     border-radius: 50%;
-    background: #3268ad;
+    background: #21834a;
     color: white;
-    font-size: 60px;
+    font-size: 64px;
     font-weight: bold;
 }
 
-.verify-card h1 { color: #281b1b; font-size: 30px; }
+.status-icon.invalid {
+    background: #a52a3a;
+}
 
-.verify-message { font-size: 16px; line-height: 1.5; }
+.verify-card h1 {
+    margin: 8px 0 14px;
+    color: #281b1b;
+    font-size: 31px;
+}
+
+.verify-message {
+    color: #493e3e;
+    font-size: 17px;
+    line-height: 1.5;
+}
 
 .verify-name {
-    margin: 25px 0 20px;
+    margin: 26px 0 20px;
     color: #18365f;
     font-size: 29px;
     font-weight: bold;
@@ -350,7 +442,10 @@ input, select {
     border-bottom: 1px solid #dce4ee;
     overflow-wrap: anywhere;
 }
-.verify-row:last-child { border-bottom: 0; }
+
+.verify-row:last-child {
+    border-bottom: none;
+}
 
 .verify-row small {
     display: block;
@@ -360,65 +455,175 @@ input, select {
     font-weight: bold;
 }
 
-.verify-row strong { font-size: 18px; }
+.verify-row strong {
+    font-size: 18px;
+}
+
+.verify-note {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 12px;
+    background: #fff3d7;
+    color: #765b20;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* Mobile layout */
 
 @media (max-width: 850px) {
-    body { padding: 8px; }
+    body {
+        padding: 8px;
+    }
 
     .header {
         grid-template-columns: 1fr;
         gap: 14px;
-        padding: 18px 16px 28px;
+        padding: 17px 16px 28px;
         text-align: center;
     }
 
-    .logo-box { max-width: 320px; width: 100%; margin: auto; }
-    .event-title h1 { font-size: 29px; }
-    .event-title p { font-size: 18px; }
-    .entry { max-width: 220px; margin: auto; width: 100%; }
+    .logo-box {
+        width: 100%;
+        max-width: 320px;
+        margin: auto;
+    }
+
+    .event-title h1 {
+        font-size: 28px;
+    }
+
+    .event-title p {
+        font-size: 17px;
+    }
+
+    .entry-label {
+        width: 100%;
+        max-width: 220px;
+        margin: auto;
+    }
 
     .pass-body {
         grid-template-columns: 1fr;
-        gap: 28px;
+        gap: 25px;
         padding: 18px;
     }
 
-    .separator { display: none; }
-    .event-info, .details { grid-template-columns: 1fr; }
-    .qr-panel { border-top: 3px dashed #d4ad54; padding-top: 22px; }
-    .qr-box { max-width: 340px; margin: auto; }
+    .separator {
+        display: none;
+    }
+
+    .event-info,
+    .details {
+        grid-template-columns: 1fr;
+    }
+
+    .qr-panel {
+        padding: 22px 0 0;
+        border-top: 3px dashed #d8c48c;
+    }
+
+    .qr-box {
+        max-width: 330px;
+        margin: auto;
+    }
 }
+
+/* Print layout */
 
 @media print {
-    @page { size: A4 landscape; margin: 5mm; }
-    body { padding: 0; background: white; }
-    .pass { margin: 0; box-shadow: none; border-width: 2px; }
+    @page {
+        size: A4 landscape;
+        margin: 6mm;
+    }
+
+    body {
+        padding: 0;
+        background: white;
+    }
+
+    .pass {
+        max-width: none;
+        margin: 0;
+        box-shadow: none;
+        border-width: 2px;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+
     .header {
-        grid-template-columns: 210px minmax(0, 1fr) 145px;
-        gap: 15px;
-        padding: 12px 16px 24px;
+        grid-template-columns: 190px minmax(0, 1fr) 140px;
+        gap: 14px;
+        padding: 12px 16px 23px;
     }
-    .logo { height: 70px; }
-    .logo-box { min-height: 80px; }
-    .event-title h1 { font-size: 27px; }
-    .event-title p { font-size: 15px; }
+
+    .logo {
+        height: 70px;
+    }
+
+    .logo-box {
+        min-height: 78px;
+    }
+
+    .event-title h1 {
+        font-size: 25px;
+    }
+
+    .event-title p {
+        font-size: 15px;
+    }
+
     .pass-body {
-        grid-template-columns: minmax(0, 1fr) 3px 235px;
-        gap: 16px;
-        padding: 18px;
+        grid-template-columns: minmax(0, 1fr) 3px 220px;
+        gap: 15px;
+        padding: 17px;
     }
-    .name { font-size: 31px; margin-bottom: 18px; }
-    .info-box { min-height: 90px; padding: 12px; }
-    .info-label { margin-bottom: 10px; }
-    .info-value { font-size: 16px; }
-    .detail { min-height: 85px; padding: 9px; }
-    .detail small { margin-bottom: 10px; }
-    .detail strong { font-size: 13px; }
-    .qr-box { padding: 9px; }
-    .qr-image { max-width: 165px; }
+
+    .name {
+        font-size: 30px;
+        margin-bottom: 17px;
+    }
+
+    .event-date,
+    .venue {
+        min-height: 85px;
+        padding: 12px;
+    }
+
+    .info-label {
+        margin-bottom: 10px;
+    }
+
+    .info-value {
+        font-size: 16px;
+    }
+
+    .item {
+        min-height: 80px;
+        padding: 9px;
+    }
+
+    .item small {
+        margin-bottom: 8px;
+    }
+
+    .item strong {
+        font-size: 13px;
+    }
+
+    .qr-box {
+        padding: 8px;
+    }
+
+    .qr-image {
+        max-width: 160px;
+    }
+
+    .no-print {
+        display: none !important;
+    }
 }
 """
-
 
 FORM_HTML = """
 <!doctype html>
@@ -426,19 +631,19 @@ FORM_HTML = """
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SilverNova Pass Preview</title>
+<title>SilverNova 2026 - Pass Preview</title>
 <style>{{ css }}</style>
 </head>
 <body>
 <div class="form-card">
     {% if logo_exists %}
-    <img class="verify-logo" src="{{ logo_url }}" alt="NIET logo">
+    <img class="form-logo" src="{{ logo_url }}" alt="NIET logo">
     {% else %}
     <h2 style="text-align:center">NIET Greater Noida</h2>
     {% endif %}
 
     <h1>{{ event_name }}</h1>
-    <p style="text-align:center">{{ subtitle }}</p>
+    <p><strong>{{ subtitle }}</strong></p>
 
     <div class="sample-note">
         SAMPLE PREVIEW — NOT VALID FOR EVENT ENTRY
@@ -449,12 +654,12 @@ FORM_HTML = """
         <input id="name" name="name" maxlength="100" required>
 
         <label for="event_date">Event Date</label>
-        <input id="event_date" name="event_date" type="date"
+        <input id="event_date" type="date" name="event_date"
                value="2026-10-16" required>
 
         <label for="venue">Venue</label>
-        <input id="venue" name="venue"
-               value="{{ venue }}" maxlength="150" required>
+        <input id="venue" name="venue" value="{{ venue }}"
+               maxlength="150" required>
 
         <label for="course">Course</label>
         <select id="course" name="course" required>
@@ -465,7 +670,8 @@ FORM_HTML = """
         </select>
 
         <label for="branch">Branch</label>
-        <input id="branch" name="branch" maxlength="100" required>
+        <input id="branch" name="branch" maxlength="100"
+               placeholder="e.g. Biotechnology" required>
 
         <label for="year">Year of Study</label>
         <select id="year" name="year" required>
@@ -475,13 +681,14 @@ FORM_HTML = """
             <option>4th Year</option>
         </select>
 
-        <button class="button" type="submit">Generate Pass Preview</button>
+        <button class="button" type="submit">
+            Generate Pass Preview
+        </button>
     </form>
 </div>
 </body>
 </html>
 """
-
 
 PASS_HTML = """
 <!doctype html>
@@ -489,7 +696,7 @@ PASS_HTML = """
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SilverNova Pass Preview</title>
+<title>SilverNova 2026 - Event Pass Preview</title>
 <style>{{ css }}</style>
 </head>
 <body>
@@ -509,34 +716,45 @@ PASS_HTML = """
             <p>{{ subtitle }}</p>
         </div>
 
-        <div class="entry">ENTRY PASS</div>
+        <div class="entry-label">ENTRY PASS</div>
     </header>
 
     <main class="pass-body">
-        <section class="left">
-            <div class="participant">ADMIT ONE - REGISTERED PARTICIPANT</div>
+        <section class="left-panel">
+            <div class="participant-label">
+                ADMIT ONE - REGISTERED PARTICIPANT
+            </div>
+
             <div class="name">{{ ticket.name }}</div>
 
             <div class="event-info">
-                <div class="info-box">
+                <div class="event-date">
                     <span class="info-label">EVENT DATE</span>
-                    <div class="info-value">{{ ticket.event_date }}</div>
+                    <div class="info-value">
+                        {{ ticket.event_date_display }}
+                    </div>
                 </div>
-                <div class="info-box">
+
+                <div class="venue">
                     <span class="info-label">VENUE</span>
                     <div class="info-value">{{ ticket.venue }}</div>
                 </div>
             </div>
 
             <div class="details">
-                <div class="detail">
-                    <small>COURSE</small><strong>{{ ticket.course }}</strong>
+                <div class="item">
+                    <small>COURSE</small>
+                    <strong>{{ ticket.course }}</strong>
                 </div>
-                <div class="detail">
-                    <small>BRANCH</small><strong>{{ ticket.branch }}</strong>
+
+                <div class="item">
+                    <small>BRANCH</small>
+                    <strong>{{ ticket.branch }}</strong>
                 </div>
-                <div class="detail">
-                    <small>YEAR OF STUDY</small><strong>{{ ticket.year }}</strong>
+
+                <div class="item">
+                    <small>YEAR OF STUDY</small>
+                    <strong>{{ ticket.year }}</strong>
                 </div>
             </div>
         </section>
@@ -553,22 +771,28 @@ PASS_HTML = """
             <div class="qr-box">
                 <img class="qr-image"
                      src="data:image/png;base64,{{ ticket.qr }}"
-                     alt="Pass preview QR code">
+                     alt="QR code for pass preview">
+
                 <div class="ticket-number">{{ ticket.id }}</div>
             </div>
 
-            <p class="hint">Scan this QR code at the NIET entry gate</p>
+            <p class="hint">
+                Scan this QR code to view the saved pass details.
+            </p>
 
             <div class="sample-note">
                 SAMPLE PREVIEW — NOT VALID FOR EVENT ENTRY
             </div>
+
+            <button class="button no-print" onclick="window.print()">
+                Print / Save PDF
+            </button>
         </aside>
     </main>
 </div>
 </body>
 </html>
 """
-
 
 VERIFY_HTML = """
 <!doctype html>
@@ -587,51 +811,66 @@ VERIFY_HTML = """
     <h2>NIET Greater Noida</h2>
     {% endif %}
 
-    <div class="status-icon">i</div>
-    <h1>Pass Preview</h1>
-
-    <p class="verify-message">
-        This QR code displays the participant details saved
-        in the demonstration application.
-    </p>
-
     {% if ticket %}
-    <div class="verify-name">{{ ticket.name }}</div>
+        <div class="status-icon">✓</div>
+        <h1>Ticket Found</h1>
 
-    <div class="verify-details">
-        <div class="verify-row">
-            <small>COURSE</small><strong>{{ ticket.course }}</strong>
-        </div>
-        <div class="verify-row">
-            <small>BRANCH</small><strong>{{ ticket.branch }}</strong>
-        </div>
-        <div class="verify-row">
-            <small>YEAR OF STUDY</small><strong>{{ ticket.year }}</strong>
-        </div>
-        <div class="verify-row">
-            <small>EVENT</small><strong>{{ ticket.event_date }}</strong>
-        </div>
-        <div class="verify-row">
-            <small>VENUE</small><strong>{{ ticket.venue }}</strong>
-        </div>
-        <div class="verify-row">
-            <small>TICKET NUMBER</small><strong>{{ ticket.id }}</strong>
-        </div>
-    </div>
+        <p class="verify-message">
+            The QR code matches a record in this demonstration app.
+        </p>
 
-    <div class="sample-note">
-        SAMPLE PREVIEW — NOT VALID FOR EVENT ENTRY.
-        This page does not verify an official ticket.
-    </div>
+        <div class="verify-name">{{ ticket.name }}</div>
 
-    <a class="button" href="{{ url_for('show_pass', ticket_id=ticket.id) }}">
-        View e-pass
-    </a>
+        <div class="verify-details">
+            <div class="verify-row">
+                <small>COURSE</small>
+                <strong>{{ ticket.course }}</strong>
+            </div>
+
+            <div class="verify-row">
+                <small>BRANCH</small>
+                <strong>{{ ticket.branch }}</strong>
+            </div>
+
+            <div class="verify-row">
+                <small>YEAR OF STUDY</small>
+                <strong>{{ ticket.year }}</strong>
+            </div>
+
+            <div class="verify-row">
+                <small>EVENT</small>
+                <strong>{{ ticket.event_date_display }}</strong>
+            </div>
+
+            <div class="verify-row">
+                <small>TICKET NUMBER</small>
+                <strong style="color:#701329">
+                    {{ ticket.id }}
+                </strong>
+            </div>
+        </div>
+
+        <div class="verify-note">
+            SAMPLE PREVIEW — NOT VALID FOR EVENT ENTRY.
+            This page does not confirm official ticket validity.
+        </div>
+
+        <a class="button"
+           href="{{ url_for('show_pass', ticket_id=ticket.id) }}">
+            View e-pass
+        </a>
+
     {% else %}
-    <div class="sample-note">
-        This preview record was not found. Generate a new preview.
-    </div>
-    <a class="button" href="{{ url_for('home') }}">Back to registration</a>
+        <div class="status-icon invalid">×</div>
+        <h1>Ticket Not Found</h1>
+
+        <p class="verify-message">
+            No matching record was found in this demonstration app.
+        </p>
+
+        <a class="button" href="{{ url_for('home') }}">
+            Back to registration
+        </a>
     {% endif %}
 </div>
 </body>
@@ -639,26 +878,36 @@ VERIFY_HTML = """
 """
 
 
-def logo_exists():
-    path = os.path.join(app.static_folder, LOGO_FILENAME)
-    return os.path.isfile(path)
+def get_logo_info():
+    """Check whether the logo image exists in the static folder."""
+    path = os.path.join(
+        app.static_folder or "static",
+        LOGO_FILENAME
+    )
 
+    exists = os.path.isfile(path)
 
-def logo_url():
-    if logo_exists():
-        return url_for("static", filename=LOGO_FILENAME)
-    return ""
+    if exists:
+        logo_url = url_for("static", filename=LOGO_FILENAME)
+    else:
+        logo_url = ""
+
+    return exists, logo_url
 
 
 def render_page(template, **context):
+    """Pass common template variables to each page."""
+    logo_exists, logo_url = get_logo_info()
+
     context.update({
         "css": CSS,
-        "logo_exists": logo_exists(),
-        "logo_url": logo_url(),
+        "logo_exists": logo_exists,
+        "logo_url": logo_url,
         "event_name": EVENT_NAME,
         "subtitle": EVENT_SUBTITLE,
         "venue": DEFAULT_VENUE,
     })
+
     return render_template_string(template, **context)
 
 
@@ -683,16 +932,18 @@ def home():
         return "Please complete every field.", 400
 
     try:
-        event_date = date.fromisoformat(raw_date)
+        parsed_date = date.fromisoformat(raw_date)
     except ValueError:
         return "Please enter a valid event date.", 400
 
-    ticket_id = "NIET-" + secrets.token_hex(5).upper()
+    # Clearly marked sample ticket ID.
+    ticket_id = "NIET-PREVIEW-" + secrets.token_hex(5).upper()
 
     ticket = {
         "id": ticket_id,
         "name": name,
-        "event_date": event_date.strftime("%d %b %Y"),
+        "event_date": raw_date,
+        "event_date_display": parsed_date.strftime("%d %b %Y"),
         "venue": venue,
         "course": course,
         "branch": branch,
@@ -701,13 +952,14 @@ def home():
 
     tickets[ticket_id] = ticket
 
-    # QR opens the public verification page.
-    verify_url = (
-        request.url_root.rstrip("/")
-        + url_for("verify", ticket_id=ticket_id)
+    # QR code opens the ticket verification route.
+    verification_url = url_for(
+        "verify",
+        ticket_id=ticket_id,
+        _external=True
     )
 
-    qr_image = qrcode.make(verify_url)
+    qr_image = qrcode.make(verification_url)
     buffer = io.BytesIO()
     qr_image.save(buffer, format="PNG")
 
@@ -720,22 +972,45 @@ def home():
 
 @app.get("/pass/<ticket_id>")
 def show_pass(ticket_id):
+    """Display an existing sample pass."""
     ticket = tickets.get(ticket_id)
 
-    if ticket is None:
-        return "Preview ticket not found. Please generate a new one.", 404
+    if not ticket:
+        abort(
+            404,
+            description="Preview ticket not found. Generate a new preview."
+        )
 
     return render_page(PASS_HTML, ticket=ticket)
 
 
-@app.get("/verify/<ticket_id>")
+@app.route("/verify/<ticket_id>", methods=["GET"])
 def verify(ticket_id):
-    ticket = tickets.get(ticket_id)
-    status = 200 if ticket else 404
+    """
+    QR verification route.
 
-    return render_page(VERIFY_HTML, ticket=ticket), status
+    The QR code contains a URL like:
+    https://your-domain/verify/NIET-PREVIEW-XXXXXXXXXX
+    """
+    ticket = tickets.get(ticket_id)
+
+    if ticket is None:
+        return render_page(
+            VERIFY_HTML,
+            ticket=None
+        ), 404
+
+    return render_page(
+        VERIFY_HTML,
+        ticket=ticket
+    )
 
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", "10000"))
-    app.run(host="0.0.0.0", port=port, debug=False)
+
+    app.run(
+        host="0.0.0.0",
+        port=port,
+        debug=False
+    )
