@@ -13,20 +13,25 @@ tickets = {}
 # Event configuration
 EVENT_NAME = "SILVERNOVA 2026"
 EVENT_SUBTITLE = "GARBA & DJ NIGHT"
-EVENT_DATE = "15 Oct 2026"
+EVENT_DATE = "16 Oct 2026"
+VENUE = "NIET Plot 19 Campus"
 
-# Logo file: static/niet-logo.jpg
+# Logo file must be inside the static folder
 LOGO_PATH = "niet-logo.jpg"
 
-MAROON = "#701329"
-ORANGE = "#e87516"
-CREAM = "#fff9e9"
-GOLD = "#d6b75b"
+# Theme colours
+TEAL = "#168B87"
+BLUE = "#3268AD"
+NAVY = "#18365F"
+GOLD = "#D4AD54"
+WHITE = "#FFFFFF"
+BACKGROUND = "#EAF0F8"
+CREAM = "#F5F8FF"
 
 
-# =====================================================
-# EVENT PASS PAGE
-# =====================================================
+# =========================================================
+# EVENT PASS
+# =========================================================
 
 PASS_HTML = """
 <!DOCTYPE html>
@@ -35,7 +40,7 @@ PASS_HTML = """
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>SilverNova 2026 - Event Pass</title>
+<title>SilverNova 2026 - Demo Pass</title>
 
 <style>
 * {
@@ -45,66 +50,58 @@ PASS_HTML = """
 body {
     margin: 0;
     padding: 20px;
-    background: #eef1f6;
+    background: #eaf0f8;
     font-family: Arial, Helvetica, sans-serif;
-    color: #35111b;
+    color: #18365f;
 }
 
 .pass {
     width: 100%;
     max-width: 1200px;
     margin: 15px auto;
-    background: {{ cream }};
-    border: 4px solid {{ gold }};
-    border-radius: 22px;
+    background: #f5f8ff;
+    border: 4px solid #d4ad54;
+    border-radius: 25px;
     overflow: hidden;
 }
 
-/* HEADER */
+/* Header */
 
 .header {
     position: relative;
     display: grid;
-    grid-template-columns: 270px minmax(0, 1fr) 175px;
+    grid-template-columns: 270px minmax(0, 1fr) 190px;
     align-items: center;
     gap: 25px;
     padding: 22px 28px;
-    background: {{ maroon }};
-    color: #ffe7a0;
-    border-top: 7px solid #e8a02d;
-    border-bottom: 7px solid #e8a02d;
+    background: linear-gradient(110deg, #168b87, #3268ad);
+    border-top: 7px solid #e8c75a;
+    color: white;
 }
-
-/* Colourful decorative strip */
 
 .header::after {
     content: "";
     position: absolute;
+    bottom: 0;
     left: 0;
     right: 0;
-    bottom: -7px;
-    height: 7px;
+    height: 10px;
     background: repeating-linear-gradient(
         90deg,
-        #e8a02d 0px,
-        #e8a02d 10px,
-        #fff0c2 10px,
-        #fff0c2 17px,
-        #a83c78 17px,
-        #a83c78 24px,
-        #fff0c2 24px,
-        #fff0c2 31px
+        #f2d45d 0px,
+        #f2d45d 10px,
+        #9cb8f0 10px,
+        #9cb8f0 20px,
+        #65c5bd 20px,
+        #65c5bd 30px
     );
 }
 
-/* NIET LOGO */
-
 .logo-box {
-    width: 100%;
-    min-height: 100px;
+    min-height: 110px;
     padding: 12px;
     background: white;
-    border-radius: 14px;
+    border-radius: 15px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -113,54 +110,52 @@ body {
 .logo-box img {
     display: block;
     width: 100%;
-    max-width: 245px;
+    max-width: 250px;
     height: 90px;
     object-fit: contain;
 }
 
-/* EVENT TITLE */
-
 .event-title {
     min-width: 0;
-    font-weight: normal;
 }
 
 .present {
     margin-bottom: 8px;
+    color: white;
     font-size: 16px;
-    font-weight: normal;
-    color: #ffe7a0;
+    font-weight: bold;
 }
 
 .event-title h1 {
     margin: 0 0 8px;
+    color: white;
     font-size: 34px;
-    font-weight: normal;
-    color: #ffffff;
+    font-weight: bold;
+    overflow-wrap: anywhere;
 }
 
 .event-title p {
     margin: 0;
+    color: white;
     font-size: 20px;
-    font-weight: normal;
-    color: #ffe7a0;
+    font-weight: bold;
 }
 
 .entry-label {
     padding: 14px 10px;
-    border: 2px solid #e7b8c4;
+    border: 3px solid #9dbde8;
     border-radius: 40px;
-    text-align: center;
     color: white;
+    text-align: center;
     font-size: 17px;
-    font-weight: normal;
+    font-weight: bold;
 }
 
-/* MAIN CONTENT */
+/* Main layout */
 
 .pass-content {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 290px;
+    grid-template-columns: minmax(0, 1fr) 300px;
     gap: 28px;
     padding: 28px;
 }
@@ -168,62 +163,56 @@ body {
 .left-section {
     min-width: 0;
     padding-right: 25px;
-    border-right: 2px dashed {{ gold }};
+    border-right: 3px dashed #d4ad54;
 }
 
 .admit {
     margin-bottom: 18px;
+    color: #234f91;
     font-size: 17px;
-    font-weight: normal;
+    font-weight: bold;
 }
 
 .name {
-    margin-bottom: 25px;
-    color: {{ maroon }};
-    font-size: 38px;
+    margin: 0 0 25px;
+    color: #18365f;
+    font-size: 40px;
     font-weight: bold;
     overflow-wrap: anywhere;
 }
 
-/* EVENT DATE AND EVENT */
+/* Date and venue */
 
 .event-info {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1.2fr 1fr;
     gap: 12px;
-    margin-bottom: 22px;
+    margin-bottom: 24px;
 }
 
 .date-box,
-.event-box {
-    min-height: 115px;
+.venue-box {
+    min-height: 125px;
     padding: 22px;
-    border-radius: 18px;
+    border-radius: 20px;
+    background: linear-gradient(110deg, #168b87, #3268ad);
     color: white;
 }
 
-.date-box {
-    background: {{ maroon }};
-}
-
-.event-box {
-    background: {{ orange }};
-}
-
 .field-label {
-    margin-bottom: 12px;
-    font-size: 12px;
-    font-weight: normal;
-    opacity: 0.9;
+    margin-bottom: 15px;
+    font-size: 14px;
+    font-weight: bold;
+    opacity: 0.95;
 }
 
 .field-value {
-    font-size: 20px;
-    font-weight: normal;
+    font-size: 21px;
+    font-weight: bold;
     overflow-wrap: anywhere;
 }
 
-/* COURSE, BRANCH, YEAR */
+/* Student details */
 
 .details {
     display: grid;
@@ -233,24 +222,27 @@ body {
 
 .item {
     min-width: 0;
-    min-height: 100px;
+    min-height: 115px;
     padding: 16px;
-    border: 2px solid #e0c878;
-    border-top: 6px solid #e0c878;
-    border-radius: 10px;
+    background: #edf3ff;
+    border: 2px solid #d4ad54;
+    border-top: 7px solid #e8c75a;
+    border-radius: 12px;
     overflow-wrap: anywhere;
 }
 
 .item .field-label {
-    color: #786b5e;
+    color: #526680;
+    font-size: 13px;
 }
 
 .item .field-value {
-    color: #35111b;
-    font-size: 17px;
+    color: #18365f;
+    font-size: 19px;
+    font-weight: bold;
 }
 
-/* QR SECTION */
+/* QR section */
 
 .right-section {
     min-width: 0;
@@ -260,51 +252,63 @@ body {
 
 .epass {
     display: inline-block;
-    margin-bottom: 18px;
-    padding: 12px 35px;
-    background: {{ maroon }};
+    margin-bottom: 20px;
+    padding: 13px 40px;
+    background: linear-gradient(110deg, #168b87, #3268ad);
     color: white;
-    border-radius: 25px;
-    font-size: 15px;
+    border-radius: 30px;
+    font-size: 17px;
+    font-weight: bold;
 }
 
 .right-section h2 {
-    margin: 8px 0 20px;
-    color: {{ maroon }};
-    font-size: 19px;
-    font-weight: normal;
+    margin: 8px 0 22px;
+    color: #234f91;
+    font-size: 21px;
+    font-weight: bold;
 }
 
 .qr-box {
-    padding: 18px;
-    background: #fff0cf;
-    border-radius: 15px;
+    padding: 20px;
+    background: #eaf1ff;
+    border-radius: 20px;
 }
 
 .qr-box img {
     display: block;
     width: 100%;
-    max-width: 230px;
+    max-width: 250px;
     margin: auto;
+    padding: 8px;
     background: white;
 }
 
 .ticket-number {
-    margin-top: 14px;
-    color: {{ maroon }};
+    margin-top: 15px;
+    color: #234f91;
     font-size: 14px;
     font-weight: bold;
     overflow-wrap: anywhere;
 }
 
 .scan-text {
-    margin: 18px 0;
-    color: #786b5e;
-    font-size: 13px;
+    margin: 20px 0;
+    color: #687b95;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.demo-note {
+    margin-top: 12px;
+    padding: 10px;
+    background: #fff3d7;
+    border-radius: 8px;
+    color: #765b20;
+    font-size: 12px;
     line-height: 1.5;
 }
 
-/* MOBILE RESPONSIVE */
+/* Mobile */
 
 @media (max-width: 760px) {
     body {
@@ -320,16 +324,22 @@ body {
 
     .logo-box {
         width: 100%;
-        max-width: 300px;
+        max-width: 320px;
         margin: auto;
     }
 
     .event-title h1 {
-        font-size: 28px;
+        font-size: 29px;
     }
 
     .event-title p {
         font-size: 18px;
+    }
+
+    .entry-label {
+        max-width: 220px;
+        width: 100%;
+        margin: auto;
     }
 
     .pass-content {
@@ -342,25 +352,21 @@ body {
         padding-right: 0;
         padding-bottom: 25px;
         border-right: none;
-        border-bottom: 2px dashed {{ gold }};
+        border-bottom: 3px dashed #d4ad54;
     }
 
-    .details {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+    .name {
+        font-size: 32px;
     }
 
     .right-section {
         width: 100%;
-        max-width: 320px;
+        max-width: 340px;
         margin: auto;
-    }
-
-    .name {
-        font-size: 30px;
     }
 }
 
-@media (max-width: 380px) {
+@media (max-width: 420px) {
     .event-info {
         grid-template-columns: 1fr;
     }
@@ -370,7 +376,11 @@ body {
     }
 
     .event-title h1 {
-        font-size: 24px;
+        font-size: 25px;
+    }
+
+    .name {
+        font-size: 27px;
     }
 }
 </style>
@@ -385,22 +395,24 @@ body {
         <div class="logo-box">
             <img
                 src="{{ url_for('static', filename=logo) }}"
-                alt="NIET Greater Noida logo">
+                alt="NIET logo"
+                onerror="this.style.display='none';
+                         document.getElementById('logo-error')
+                         .style.display='block';">
+
+            <span id="logo-error"
+                  style="display:none; color:#18365f;">
+                NIET logo file not found
+            </span>
         </div>
 
         <div class="event-title">
-
             <div class="present">NIET PRESENTS</div>
-
             <h1>{{ event_name }}</h1>
-
             <p>{{ event_subtitle }}</p>
-
         </div>
 
-        <div class="entry-label">
-            ENTRY PASS
-        </div>
+        <div class="entry-label">ENTRY PASS</div>
 
     </header>
 
@@ -412,34 +424,22 @@ body {
                 ADMIT ONE - REGISTERED PARTICIPANT
             </div>
 
-            <div class="name">
-                {{ ticket.name }}
-            </div>
+            <div class="name">{{ ticket.name }}</div>
 
             <div class="event-info">
 
                 <div class="date-box">
-
-                    <div class="field-label">
-                        EVENT DATE
-                    </div>
-
+                    <div class="field-label">EVENT DATE</div>
                     <div class="field-value">
                         {{ ticket.event_date }}
                     </div>
-
                 </div>
 
-                <div class="event-box">
-
-                    <div class="field-label">
-                        EVENT
-                    </div>
-
+                <div class="venue-box">
+                    <div class="field-label">VENUE</div>
                     <div class="field-value">
-                        {{ event_name }}
+                        {{ venue }}
                     </div>
-
                 </div>
 
             </div>
@@ -481,7 +481,7 @@ body {
 
                 <img
                     src="data:image/png;base64,{{ ticket.qr }}"
-                    alt="Ticket QR code">
+                    alt="Demo ticket QR code">
 
                 <div class="ticket-number">
                     {{ ticket.id }}
@@ -490,7 +490,12 @@ body {
             </div>
 
             <div class="scan-text">
-                Scan this QR code at the NIET entry gate
+                Scan this QR code to view demo ticket details.
+            </div>
+
+            <div class="demo-note">
+                DEMO PASS — NOT VALID FOR ENTRY.
+                This page does not confirm official admission.
             </div>
 
         </aside>
@@ -504,9 +509,9 @@ body {
 """
 
 
-# =====================================================
+# =========================================================
 # QR VERIFICATION PAGE
-# =====================================================
+# =========================================================
 
 VERIFY_HTML = """
 <!DOCTYPE html>
@@ -514,11 +519,9 @@ VERIFY_HTML = """
 <head>
 
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-<meta name="viewport"
-      content="width=device-width, initial-scale=1">
-
-<title>SilverNova 2026 - Ticket Details</title>
+<title>SilverNova 2026 - Demo Verification</title>
 
 <style>
 * {
@@ -528,18 +531,19 @@ VERIFY_HTML = """
 body {
     margin: 0;
     padding: 20px;
-    background: #eef1f6;
+    background: #eaf0f8;
     font-family: Arial, Helvetica, sans-serif;
-    color: #35111b;
+    color: #18365f;
 }
 
 .card {
+    width: 100%;
     max-width: 480px;
     margin: 25px auto;
     padding: 28px;
-    background: white;
-    border-radius: 22px;
-    border-top: 10px solid #701329;
+    background: #ffffff;
+    border-radius: 24px;
+    border-top: 8px solid #21844d;
     box-shadow: 0 8px 30px #0001;
 }
 
@@ -547,51 +551,132 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 20px;
+    min-height: 110px;
+    margin-bottom: 15px;
 }
 
 .logo img {
     display: block;
     width: 100%;
-    max-width: 380px;
-    height: 115px;
+    max-width: 340px;
+    height: 110px;
     object-fit: contain;
 }
 
-.name {
-    margin: 20px 0 25px;
-    color: #172f43;
+.status-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 115px;
+    height: 115px;
+    margin: 20px auto;
+    border-radius: 50%;
+    background: #21844d;
+    color: white;
+    font-size: 70px;
+    font-weight: bold;
+}
+
+h1 {
+    margin: 20px 0 10px;
+    color: #321e1b;
     text-align: center;
-    font-size: 30px;
+    font-size: 34px;
+}
+
+.subtitle {
+    margin: 0 0 25px;
+    color: #444;
+    text-align: center;
+    font-size: 17px;
+    line-height: 1.5;
+}
+
+.name {
+    margin: 25px 0;
+    color: #234f91;
+    text-align: center;
+    font-size: 29px;
+    font-weight: bold;
     overflow-wrap: anywhere;
 }
 
+.details {
+    padding: 15px 22px;
+    background: #f8fafc;
+    border: 2px solid #dce4ee;
+    border-radius: 18px;
+}
+
 .row {
-    padding: 15px;
-    margin-top: 10px;
-    background: #f5f7fa;
-    border: 1px solid #dfe5eb;
-    border-radius: 12px;
+    padding: 16px 0;
+    border-bottom: 1px solid #dce4ee;
     overflow-wrap: anywhere;
+}
+
+.row:last-child {
+    border-bottom: none;
 }
 
 .label {
     display: block;
-    margin-bottom: 8px;
-    color: #746a67;
+    margin-bottom: 7px;
+    color: #786b65;
     font-size: 13px;
     font-weight: bold;
+    letter-spacing: 0.5px;
 }
 
 .value {
+    color: #30231f;
     font-size: 19px;
     font-weight: bold;
 }
 
 .ticket-number {
-    color: #701329;
-    letter-spacing: 0.5px;
+    color: #a12c45;
     overflow-wrap: anywhere;
+}
+
+.demo-status {
+    margin-top: 22px;
+    padding: 16px;
+    background: #fff3d7;
+    color: #765b20;
+    border-radius: 12px;
+    font-size: 15px;
+    line-height: 1.6;
+    text-align: center;
+}
+
+.back {
+    display: block;
+    margin-top: 22px;
+    padding: 15px;
+    background: #eaf0f8;
+    color: #18365f;
+    border-radius: 12px;
+    text-align: center;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+@media (max-width: 420px) {
+    body {
+        padding: 10px;
+    }
+
+    .card {
+        padding: 20px;
+    }
+
+    h1 {
+        font-size: 28px;
+    }
+
+    .name {
+        font-size: 25px;
+    }
 }
 </style>
 
@@ -604,55 +689,81 @@ body {
     <div class="logo">
         <img
             src="{{ url_for('static', filename=logo) }}"
-            alt="NIET Greater Noida logo">
+            alt="NIET logo">
     </div>
 
     {% if ticket %}
 
-        <h2 class="name">
-            {{ ticket.name }}
-        </h2>
+        <div class="status-icon">✓</div>
 
-        <div class="row">
-            <span class="label">COURSE</span>
-            <div class="value">{{ ticket.course }}</div>
-        </div>
+        <h1>Demo QR</h1>
 
-        <div class="row">
-            <span class="label">BRANCH</span>
-            <div class="value">{{ ticket.branch }}</div>
-        </div>
+        <p class="subtitle">
+            The QR code matches a ticket created by this
+            demonstration application. This is not official
+            NIET ticket authentication.
+        </p>
 
-        <div class="row">
-            <span class="label">YEAR OF STUDY</span>
-            <div class="value">{{ ticket.year }}</div>
-        </div>
+        <h2 class="name">{{ ticket.name }}</h2>
 
-        <div class="row">
-            <span class="label">EVENT</span>
-            <div class="value">{{ event_name }}</div>
-        </div>
+        <div class="details">
 
-        <div class="row">
-            <span class="label">EVENT DATE</span>
-            <div class="value">{{ ticket.event_date }}</div>
-        </div>
-
-        <div class="row">
-            <span class="label">TICKET NUMBER</span>
-            <div class="value ticket-number">
-                {{ ticket.id }}
+            <div class="row">
+                <span class="label">COURSE</span>
+                <div class="value">{{ ticket.course }}</div>
             </div>
+
+            <div class="row">
+                <span class="label">BRANCH</span>
+                <div class="value">{{ ticket.branch }}</div>
+            </div>
+
+            <div class="row">
+                <span class="label">YEAR OF STUDY</span>
+                <div class="value">{{ ticket.year }}</div>
+            </div>
+
+            <div class="row">
+                <span class="label">VENUE</span>
+                <div class="value">{{ venue }}</div>
+            </div>
+
+            <div class="row">
+                <span class="label">EVENT DATE</span>
+                <div class="value">{{ ticket.event_date }}</div>
+            </div>
+
+            <div class="row">
+                <span class="label">TICKET NUMBER</span>
+                <div class="value ticket-number">
+                    {{ ticket.id }}
+                </div>
+            </div>
+
         </div>
+
+        <div class="demo-status">
+            DEMO VERIFICATION ONLY.
+            This page does not confirm official entry
+            or admission to the event.
+        </div>
+
+        <a class="back" href="{{ url_for('home') }}">
+            Back to registration
+        </a>
 
     {% else %}
 
-        <h2 class="name">Ticket Not Found</h2>
+        <h1>Ticket Not Found</h1>
 
-        <p>
-            This ticket is not available in the current
-            demo application session.
+        <p class="subtitle">
+            This demo ticket is unavailable in the current
+            application session.
         </p>
+
+        <a class="back" href="{{ url_for('home') }}">
+            Back to registration
+        </a>
 
     {% endif %}
 
@@ -663,9 +774,9 @@ body {
 """
 
 
-# =====================================================
+# =========================================================
 # REGISTRATION FORM
-# =====================================================
+# =========================================================
 
 FORM_HTML = """
 <!DOCTYPE html>
@@ -673,11 +784,9 @@ FORM_HTML = """
 <head>
 
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-<meta name="viewport"
-      content="width=device-width, initial-scale=1">
-
-<title>SilverNova 2026 Registration</title>
+<title>SilverNova 2026 - Registration Demo</title>
 
 <style>
 * {
@@ -687,9 +796,9 @@ FORM_HTML = """
 body {
     margin: 0;
     padding: 20px;
-    background: #eef1f6;
+    background: #eaf0f8;
     font-family: Arial, Helvetica, sans-serif;
-    color: #35111b;
+    color: #18365f;
 }
 
 .form-box {
@@ -697,33 +806,42 @@ body {
     margin: 20px auto;
     padding: 25px;
     background: white;
-    border-radius: 16px;
+    border-radius: 18px;
+    border-top: 8px solid #21844d;
     box-shadow: 0 8px 30px #0001;
-    border-top: 8px solid #701329;
 }
 
 .logo {
     display: block;
     width: 100%;
     max-width: 320px;
-    height: 100px;
+    height: 110px;
     object-fit: contain;
     margin: auto;
 }
 
 h2 {
+    color: #234f91;
     text-align: center;
-    color: #701329;
 }
 
 .subtitle {
     text-align: center;
-    color: #786b5e;
+}
+
+.notice {
+    margin: 18px 0;
+    padding: 12px;
+    background: #fff3d7;
+    color: #765b20;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.5;
 }
 
 label {
     display: block;
-    margin-top: 14px;
+    margin-top: 15px;
     font-weight: bold;
 }
 
@@ -731,21 +849,22 @@ input, select {
     width: 100%;
     padding: 12px;
     margin-top: 6px;
-    border: 1px solid #ccc;
-    border-radius: 7px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
     font-size: 16px;
     background: white;
 }
 
 button {
     width: 100%;
-    padding: 14px;
+    padding: 15px;
     margin-top: 22px;
-    background: #701329;
+    background: linear-gradient(110deg, #168b87, #3268ad);
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 9px;
     font-size: 16px;
+    font-weight: bold;
     cursor: pointer;
 }
 </style>
@@ -759,41 +878,53 @@ button {
     <img
         class="logo"
         src="{{ url_for('static', filename=logo) }}"
-        alt="NIET Greater Noida logo">
+        alt="NIET logo">
 
     <h2>{{ event_name }}</h2>
 
     <p class="subtitle">{{ event_subtitle }}</p>
 
+    <div class="notice">
+        Demonstration registration only.
+        This form does not register you for the official event.
+    </div>
+
     <form method="POST" action="{{ url_for('home') }}">
 
-        <label>Full Name</label>
-        <input name="name" maxlength="100" required>
-
-        <label>Event Date</label>
+        <label for="name">Full Name</label>
         <input
-            type="date"
-            name="event_date"
-            value="2026-10-15"
+            id="name"
+            name="name"
+            maxlength="100"
+            autocomplete="name"
             required>
 
-        <label>Course</label>
-        <select name="course" required>
+        <label for="event_date">Event Date</label>
+        <input
+            id="event_date"
+            type="date"
+            name="event_date"
+            value="2026-10-16"
+            required>
+
+        <label for="course">Course</label>
+        <select id="course" name="course" required>
             <option value="B.Tech">B.Tech</option>
             <option value="MBA">MBA</option>
             <option value="M.Tech">M.Tech</option>
             <option value="B.Pharm">B.Pharm</option>
         </select>
 
-        <label>Branch</label>
+        <label for="branch">Branch</label>
         <input
+            id="branch"
             name="branch"
             placeholder="e.g. Biotechnology"
             maxlength="100"
             required>
 
-        <label>Year of Study</label>
-        <select name="year" required>
+        <label for="year">Year of Study</label>
+        <select id="year" name="year" required>
             <option>1st Year</option>
             <option>2nd Year</option>
             <option>3rd Year</option>
@@ -813,9 +944,9 @@ button {
 """
 
 
-# =====================================================
-# HOME ROUTE
-# =====================================================
+# =========================================================
+# HOME / REGISTRATION ROUTE
+# =========================================================
 
 @app.route("/", methods=["GET", "POST"])
 def home():
@@ -832,16 +963,13 @@ def home():
             return "Please complete all fields.", 400
 
         try:
-            parsed_date = datetime.strptime(
-                raw_date, "%Y-%m-%d"
-            )
+            parsed_date = datetime.strptime(raw_date, "%Y-%m-%d")
             formatted_date = parsed_date.strftime("%d %b %Y")
 
         except ValueError:
             return "Invalid event date.", 400
 
-        # Generate a unique demo ticket number
-        ticket_id = "NIET-" + secrets.token_hex(6).upper()
+        ticket_id = "DEMO-" + secrets.token_hex(6).upper()
 
         ticket = {
             "id": ticket_id,
@@ -852,7 +980,9 @@ def home():
             "year": year,
         }
 
-        # QR code points to the ticket verification page
+        # QR code opens the verification route.
+        # The deployed site must be publicly accessible for
+        # scanning from another device.
         verification_url = url_for(
             "verify",
             ticket_id=ticket_id,
@@ -876,10 +1006,7 @@ def home():
             logo=LOGO_PATH,
             event_name=EVENT_NAME,
             event_subtitle=EVENT_SUBTITLE,
-            maroon=MAROON,
-            orange=ORANGE,
-            cream=CREAM,
-            gold=GOLD,
+            venue=VENUE,
         )
 
     return render_template_string(
@@ -890,9 +1017,9 @@ def home():
     )
 
 
-# =====================================================
+# =========================================================
 # QR VERIFICATION ROUTE
-# =====================================================
+# =========================================================
 
 @app.route("/verify/<ticket_id>")
 def verify(ticket_id):
@@ -904,12 +1031,13 @@ def verify(ticket_id):
         ticket=ticket,
         logo=LOGO_PATH,
         event_name=EVENT_NAME,
+        venue=VENUE,
     )
 
 
-# =====================================================
+# =========================================================
 # RUN APPLICATION
-# =====================================================
+# =========================================================
 
 if __name__ == "__main__":
     app.run(
