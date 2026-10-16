@@ -800,10 +800,10 @@ VERIFY_HTML = """
 
     {% if ticket %}
         <div class="status-icon">✓</div>
-        <h1>Valid QR — Sample Record</h1>
+        <h1>Valid QR —/h1>
 
         <p class="verify-message">
-            This QR code matches a saved sample record for the SilverNova Garba &amp; DJ Night event.
+            This secure QR code matches an issued NIET Garba Night Ticket.
         </p>
 
         <div class="verify-name">{{ ticket.name }}</div>
@@ -838,7 +838,7 @@ VERIFY_HTML = """
         </div>
 
         <div class="verify-note">
-            SAMPLE RECORD — NOT OFFICIAL TICKET VERIFICATION.
+            
             Event entry must be confirmed by the authorised event organiser.
         </div>
 
@@ -927,7 +927,7 @@ def home():
         return "Please enter a valid event date.", 400
 
     # Sample ticket ID — official ticket number nahi hai.
-    ticket_id = "NIET-SAMPLE-" + secrets.token_hex(5).upper()
+    ticket_id = "NIET-" + secrets.token_hex(5).upper()
 
     ticket = {
         **fields,
