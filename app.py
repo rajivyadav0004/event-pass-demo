@@ -1,159 +1,96 @@
+from flask import Flask, request, render_template_string, url_for
+import qrcode
+import io
+import base64
+import secrets
+from datetime import datetime
 
-        <div class="verify-name">{{ verification.ticket.student_name }}</div>
+app = Flask(__name__)
 
-        <div class="verify-details">
-            <div class="verify-row">
-                <span>COURSE</span>
-                <strong>{{ verification.ticket.course }}</strong>
-            </div>
-            <div class="verify-row">
-                <span>BRANCH</span>
-                <strong>{{ verification.ticket.branch }}</strong>
-            </div>
-            <div class="verify-row">
-                <span>YEAR OF STUDY</span>
-                <strong>{{ verification.ticket.year }}</strong>
-            </div>
-            <div class="verify-row">
-                <span>EVENT DATE</span>
-                <strong>{{ verification.ticket.event_date_display }}</strong>
-            </div>
-            <div class="verify-row">
-                <span>VENUE</span>
-                <strong>{{ verification.ticket.venue }}</strong>
-            </div>
-            <div class="verify-row">
-                <span>DEMO TICKET NUMBER</span>
-                <strong class="verify-ticket-number">{{ verification.ticket.ticket_id }}</strong>
-            </div>
-        </div>
+# Demo ticket storage
+tickets = {}
 
-        <a class="verify-button" href="{{ url_for('home') }}">Create another demo pass</a>
-    {% else %}
-        <div class="status-icon">×</div>
-        <h1>Ticket Not Found</h1>
-        <p class="verify-subtitle">This QR code does not match a demo ticket stored by this running app.</p>
-        <a class="verify-button" href="{{ url_for('home') }}">Back to demo generator</a>
-    {% endif %}
+HTML = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Event Pass Demo</title>
 
-    <div class="demo-warning">
-        DEMO ONLY — NOT AN OFFICIAL NIET PASS OR AUTHORIZATION FOR EVENT ENTRY.
-    </div>
-</div>
-{% endif %}
+<style>
+* {
+    box-sizing: border-box;
+}
 
-</body>
-</html>
-"""
+body {
+    margin: 0;
+    padding: 20px;
+    background: #eee9dc;
+    font-family: Arial, sans-serif;
+    color: #64152a;
+}
 
+.form-box {
+    max-width: 650px;
+    margin: 15px auto 30px;
+    padding: 22px;
+    background: white;
+    border-radius: 12px;
+}
 
-@app.route("/", methods=["GET", "POST"])
-def home():
-    if request.method == "POST":
-        student_name = request.form.get("student_name", "").strip()
-        course = request.form.get("course", "").strip()
-        branch = request.form.get("branch", "").strip()
-        year = request.form.get("year", "").strip()
-        event_date = request.form.get("event_date", "").strip()
-        venue = request.form.get("venue", "").strip()
+.form-box h2 {
+    margin-top: 0;
+}
 
-        if not all([
-            student_name, course, branch,
-            year, event_date, venue
-        ]):
-            return "Please fill in all fields.", 400
+label {
+    display: block;
+    font-weight: bold;
+    margin-top: 13px;
+}
 
-        ticket_id = secrets.token_urlsafe(12)
+input, select {
+    width: 100%;
+    padding: 12px;
+    margin-top: 6px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 16px;
+}
 
-        ticket = {
-            "student_name": student_name,
-            "course": course,
-            "branch": branch,
-            "year": year,
-            "event_date": event_date,
-            "event_date_display": datetime.strptime(
-                event_date, "%Y-%m-%d"
-            ).strftime("%d %b %Y"),
-            "venue": venue,
-            "ticket_id": ticket_id,
-        }
+button {
+    width: 100%;
+    margin-top: 18px;
+    padding: 14px;
+    background: #70152c;
+    color: white;
+    border: none;
+    border-radius: 7px;
+    font-size: 16px;
+    cursor: pointer;
+}
 
-        tickets[ticket_id] = ticket
+.pass {
+    width: 100%;
+    max-width: 1100px;
+    margin: auto;
+    overflow: hidden;
+    background: #fff9e9;
+    border: 4px solid #d6b75b;
+    border-radius: 20px;
+    position: relative;
+}
 
-        verify_url = url_for(
-            "verify",
-            ticket_id=ticket_id,
-            _external=True
-        )
+.header {
+    min-height: 145px;
+    padding: 24px;
+    background: #701329;
+    color: #ffe7a0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    border-bottom: 7px solid #e8a02d;
+}
 
-        qr = qrcode.QRCode(
-            version=None,
-            error_correction=qrcode.constants.ERROR_CORRECT_M,
-            box_size=8,
-            border=4
-        )
-        qr.add_data(verify_url)
-        qr.make(fit=True)
-
-        image = qr.make_image(
-            fill_color="black",
-            back_color="white"
-        )
-
-        buffer = io.BytesIO()
-        image.save(buffer, format="PNG")
-
-        qr_image = base64.b64encode(
-            buffer.getvalue()
-        ).decode("utf-8")
-
-        ticket["qr_image"] = qr_image
-
-        return render_template_string(
-            HTML,
-            show_form=False,
-            ticket=ticket,
-            verification=None
-        )
-
-    return render_template_string(
-        HTML,
-        show_form=True,
-        ticket=None,
-        verification=None
-    )
-
-
-@app.route("/verify/<ticket_id>")
-def verify(ticket_id):
-    ticket = tickets.get(ticket_id)
-
-    if not ticket:
-        verification = {
-            "status": "TICKET NOT FOUND",
-            "ticket": None,
-            "is_valid": False
-        }
-    else:
-        try:
-            event_day = datetime.strptime(
-                ticket["event_date"], "%Y-%m-%d"
-            ).date()
-            today = datetime.now().date()
-            is_valid = event_day >= today
-        except (ValueError, TypeError, KeyError):
-            is_valid = False
-
-        verification = {
-            "status": "DEMO TICKET VALID" if is_valid else "TICKET EXPIRED",
-            "ticket": ticket,
-            "is_valid": is_valid
-        }
-
-    return render_template_string(
-        HTML,
-        show_form=False,
-        ticket=None,
-        verification=verification
-    )
-
+.header h1 {
