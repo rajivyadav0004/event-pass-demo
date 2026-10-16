@@ -1,11 +1,9 @@
-
 import os
 import io
 import base64
 import secrets
 from datetime import date
 
-import qrcode
 from flask import (
     Flask,
     request,
@@ -13,6 +11,7 @@ from flask import (
     url_for,
     abort,
 )
+import qrcode
 
 app = Flask(__name__)
 
@@ -21,9 +20,10 @@ EVENT_SUBTITLE = "GARBA & DJ NIGHT"
 DEFAULT_VENUE = "NIET Plot 19 Campus"
 LOGO_FILENAME = "NIET New Engineering Color Logo.jpg"
 
-# Demo records are stored in memory.
-# Restarting the server clears the records.
+# Sample records memory mein store hote hain.
+# Server restart hone par records clear ho jayenge.
 tickets = {}
+
 
 CSS = """
 * {
@@ -42,8 +42,8 @@ body {
     width: 100%;
     max-width: 1500px;
     margin: 10px auto;
-    background: #fff9e9;
-    border: 4px solid #d6b75b;
+    background: #f5f8ff;
+    border: 4px solid #d4ad54;
     border-radius: 24px;
     overflow: hidden;
     box-shadow: 0 8px 28px #0001;
@@ -52,13 +52,13 @@ body {
 .header {
     position: relative;
     display: grid;
-    grid-template-columns: 260px minmax(0, 1fr) 175px;
-    gap: 24px;
+    grid-template-columns: 300px minmax(0, 1fr) 200px;
+    gap: 25px;
     align-items: center;
-    padding: 22px 28px 34px;
-    color: #ffe7a0;
-    background: #701329;
-    border-top: 7px solid #e8a02d;
+    padding: 22px 30px 34px;
+    color: white;
+    background: linear-gradient(110deg, #218b89, #3268ad);
+    border-top: 7px solid #e8c75a;
 }
 
 .header::after {
@@ -69,82 +69,80 @@ body {
     bottom: 0;
     height: 13px;
     background-image:
-        radial-gradient(circle, #e8a02d 5px, transparent 5.5px),
-        radial-gradient(circle, #fff0c2 5px, transparent 5.5px),
-        radial-gradient(circle, #c94b91 5px, transparent 5.5px);
+        radial-gradient(circle, #f2d45d 5px, transparent 5.5px),
+        radial-gradient(circle, #9bb8f2 5px, transparent 5.5px),
+        radial-gradient(circle, #64c5bd 5px, transparent 5.5px);
     background-size: 45px 13px;
     background-position: 0 0, 15px 0, 30px 0;
     background-repeat: repeat-x;
 }
 
 .logo-box {
-    min-height: 105px;
+    min-height: 110px;
     padding: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: white;
-    border-radius: 13px;
+    border-radius: 14px;
+    color: #18365f;
+    font-weight: bold;
+    text-align: center;
 }
 
 .logo {
     display: block;
     width: 100%;
-    height: 95px;
+    height: 100px;
     object-fit: contain;
 }
 
-.event-title {
-    min-width: 0;
-}
-
 .small-title {
-    margin-bottom: 6px;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: bold;
 }
 
 .event-title h1 {
-    margin: 0;
-    font-size: clamp(25px, 3vw, 40px);
+    margin: 8px 0;
+    font-size: clamp(25px, 3vw, 42px);
     overflow-wrap: anywhere;
 }
 
 .event-title p {
-    margin: 8px 0 0;
-    font-size: 19px;
+    margin: 0;
+    font-size: 20px;
     font-weight: bold;
 }
 
-.entry-label {
-    padding: 12px 10px;
-    border: 2px solid #d99aab;
-    border-radius: 30px;
+.entry {
+    padding: 14px 10px;
+    border: 3px solid #8eafe3;
+    border-radius: 40px;
     text-align: center;
     font-weight: bold;
 }
 
 .pass-body {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 3px 320px;
+    grid-template-columns: minmax(0, 1fr) 3px 350px;
     gap: 25px;
-    padding: 28px;
+    padding: 30px;
 }
 
-.left-panel {
+.left {
     min-width: 0;
 }
 
-.participant-label {
+.participant {
     margin: 5px 0 18px;
-    font-size: 16px;
+    color: #234f91;
+    font-size: 18px;
     font-weight: bold;
 }
 
 .name {
-    margin: 0 0 26px;
-    color: #701329;
-    font-size: clamp(28px, 4vw, 48px);
+    margin-bottom: 28px;
+    font-size: clamp(30px, 4vw, 52px);
     font-weight: 800;
     overflow-wrap: anywhere;
 }
@@ -152,32 +150,23 @@ body {
 .event-info {
     display: grid;
     grid-template-columns: 1.2fr 1fr;
-    gap: 10px;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
 }
 
-.event-date,
-.venue {
+.info-box {
     min-width: 0;
-    min-height: 120px;
-    padding: 20px;
-    border-radius: 18px;
+    min-height: 135px;
+    padding: 22px;
     color: white;
+    background: linear-gradient(110deg, #168b87, #3268ad);
+    border-radius: 20px;
     overflow-wrap: anywhere;
-}
-
-.event-date {
-    background: #701329;
-}
-
-.venue {
-    background: #ed7915;
 }
 
 .info-label {
     display: block;
-    margin-bottom: 18px;
-    font-size: 13px;
+    margin-bottom: 20px;
+    font-size: 14px;
     font-weight: bold;
 }
 
@@ -193,39 +182,39 @@ body {
     gap: 12px;
 }
 
-.item {
+.detail {
     min-width: 0;
-    min-height: 112px;
-    padding: 16px;
-    border: 2px solid #e1cf9a;
-    border-top: 7px solid #e8c65c;
+    min-height: 120px;
+    padding: 17px;
+    background: #eaf1ff;
+    border: 2px solid #d7c28c;
+    border-top: 7px solid #e8c75a;
     border-radius: 12px;
     overflow-wrap: anywhere;
 }
 
-.item small {
+.detail small {
     display: block;
-    margin-bottom: 14px;
-    color: #786b5e;
-    font-size: 12px;
+    margin-bottom: 17px;
+    color: #526680;
+    font-size: 13px;
     font-weight: bold;
 }
 
-.item strong {
-    color: #38131c;
+.detail strong {
     font-size: 17px;
 }
 
-/* Vertical dotted divider */
+/* Vertical dotted separator */
 
 .separator {
     position: relative;
     align-self: stretch;
     width: 3px;
-    margin: -28px 0;
+    margin: -30px 0;
     background: repeating-linear-gradient(
         to bottom,
-        #d8b968 0 9px,
+        #d4ad54 0 9px,
         transparent 9px 20px
     );
 }
@@ -233,11 +222,11 @@ body {
 .circle {
     position: absolute;
     left: 50%;
-    width: 40px;
-    height: 40px;
-    border: 3px solid #d8b968;
+    width: 42px;
+    height: 42px;
+    border: 3px solid #d4ad54;
     border-radius: 50%;
-    background: #fff9e9;
+    background: #f5f8ff;
     transform: translateX(-50%);
 }
 
@@ -249,100 +238,117 @@ body {
     bottom: 0;
 }
 
-/* QR section */
+/* QR panel */
 
 .qr-panel {
     min-width: 0;
-    padding-left: 22px;
-    border-left: 0;
     text-align: center;
 }
 
 .pill {
     display: inline-block;
-    margin: 5px 0 18px;
-    padding: 12px 32px;
-    border-radius: 30px;
+    padding: 13px 25px;
+    margin: 5px 0 22px;
+    border-radius: 35px;
     color: white;
-    background: #701329;
+    background: linear-gradient(110deg, #168b87, #3268ad);
     font-weight: bold;
+    font-size: 17px;
 }
 
 .qr-panel h2 {
-    margin: 5px 0 18px;
-    font-size: 20px;
+    margin: 5px 0 25px;
+    color: #234f91;
+    font-size: 23px;
 }
 
 .qr-box {
-    width: 100%;
-    padding: 17px;
-    background: #fff1d0;
-    border-radius: 20px;
+    padding: 24px;
+    background: #eaf1ff;
+    border-radius: 25px;
 }
 
 .qr-image {
     display: block;
     width: 100%;
-    max-width: 250px;
+    max-width: 280px;
     height: auto;
     margin: auto;
+    padding: 8px;
     background: white;
 }
 
 .ticket-number {
-    margin-top: 14px;
-    font-size: 13px;
+    margin-top: 17px;
+    color: #234f91;
+    font-size: 16px;
     font-weight: bold;
     overflow-wrap: anywhere;
 }
 
 .hint {
-    margin-top: 18px;
-    color: #71665f;
-    line-height: 1.5;
+    margin: 22px 0 0;
+    color: #687b95;
+    font-size: 16px;
+    line-height: 1.6;
 }
 
 .sample-note {
-    margin-top: 16px;
-    padding: 10px;
-    border-radius: 9px;
+    margin-top: 18px;
+    padding: 12px;
+    border-radius: 10px;
     background: #fff3d7;
     color: #765b20;
     font-size: 12px;
     font-weight: bold;
     line-height: 1.5;
+    text-align: center;
 }
 
-/* Registration and verification cards */
+.button {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    margin-top: 20px;
+    border: 0;
+    border-radius: 10px;
+    background: linear-gradient(110deg, #168b87, #3268ad);
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+}
 
 .form-card,
 .verify-card {
     width: 100%;
     max-width: 520px;
     margin: 22px auto;
-    padding: 26px;
+    padding: 28px;
     background: white;
     border-radius: 24px;
     box-shadow: 0 8px 30px #0001;
 }
 
 .form-card {
-    border-top: 9px solid #701329;
+    border-top: 9px solid #21834a;
 }
 
 .form-logo,
 .verify-logo {
     display: block;
-    width: 260px;
+    width: 280px;
     max-width: 100%;
-    height: 100px;
+    height: 110px;
     margin: 0 auto 18px;
     object-fit: contain;
 }
 
 .form-card h1 {
     text-align: center;
-    color: #701329;
+    color: #234f91;
 }
 
 .form-card > p {
@@ -366,22 +372,6 @@ select {
     background: white;
 }
 
-.button {
-    display: block;
-    width: 100%;
-    padding: 15px;
-    margin-top: 20px;
-    background: linear-gradient(110deg, #701329, #a83d57);
-    color: white;
-    text-align: center;
-    text-decoration: none;
-    border: 0;
-    border-radius: 10px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
 /* QR verification page */
 
 .verify-card {
@@ -401,8 +391,9 @@ select {
     border-radius: 50%;
     background: #21834a;
     color: white;
-    font-size: 64px;
+    font-size: 68px;
     font-weight: bold;
+    box-shadow: 0 12px 25px #0001;
 }
 
 .status-icon.invalid {
@@ -412,7 +403,7 @@ select {
 .verify-card h1 {
     margin: 8px 0 14px;
     color: #281b1b;
-    font-size: 31px;
+    font-size: 32px;
 }
 
 .verify-message {
@@ -463,9 +454,9 @@ select {
     margin-top: 20px;
     padding: 15px;
     border-radius: 12px;
-    background: #fff3d7;
-    color: #765b20;
-    font-size: 13px;
+    background: #e5f5e9;
+    color: #27633b;
+    font-size: 14px;
     line-height: 1.5;
 }
 
@@ -497,7 +488,7 @@ select {
         font-size: 17px;
     }
 
-    .entry-label {
+    .entry {
         width: 100%;
         max-width: 220px;
         margin: auto;
@@ -520,11 +511,11 @@ select {
 
     .qr-panel {
         padding: 22px 0 0;
-        border-top: 3px dashed #d8c48c;
+        border-top: 3px dashed #d4ad54;
     }
 
     .qr-box {
-        max-width: 330px;
+        max-width: 360px;
         margin: auto;
     }
 }
@@ -584,8 +575,7 @@ select {
         margin-bottom: 17px;
     }
 
-    .event-date,
-    .venue {
+    .info-box {
         min-height: 85px;
         padding: 12px;
     }
@@ -598,16 +588,16 @@ select {
         font-size: 16px;
     }
 
-    .item {
+    .detail {
         min-height: 80px;
         padding: 9px;
     }
 
-    .item small {
+    .detail small {
         margin-bottom: 8px;
     }
 
-    .item strong {
+    .detail strong {
         font-size: 13px;
     }
 
@@ -625,16 +615,18 @@ select {
 }
 """
 
+
 FORM_HTML = """
 <!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SilverNova 2026 - Pass Preview</title>
+<title>SilverNova 2026 - Sample Pass</title>
 <style>{{ css }}</style>
 </head>
 <body>
+
 <div class="form-card">
     {% if logo_exists %}
     <img class="form-logo" src="{{ logo_url }}" alt="NIET logo">
@@ -646,7 +638,7 @@ FORM_HTML = """
     <p><strong>{{ subtitle }}</strong></p>
 
     <div class="sample-note">
-        SAMPLE PREVIEW — NOT VALID FOR EVENT ENTRY
+        SAMPLE DEMONSTRATION — NOT AN OFFICIAL EVENT TICKET
     </div>
 
     <form method="post">
@@ -682,13 +674,15 @@ FORM_HTML = """
         </select>
 
         <button class="button" type="submit">
-            Generate Pass Preview
+            Generate Sample Pass
         </button>
     </form>
 </div>
+
 </body>
 </html>
 """
+
 
 PASS_HTML = """
 <!doctype html>
@@ -696,10 +690,11 @@ PASS_HTML = """
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SilverNova 2026 - Event Pass Preview</title>
+<title>SilverNova 2026 - Sample Pass</title>
 <style>{{ css }}</style>
 </head>
 <body>
+
 <div class="pass">
     <header class="header">
         <div class="logo-box">
@@ -716,43 +711,40 @@ PASS_HTML = """
             <p>{{ subtitle }}</p>
         </div>
 
-        <div class="entry-label">ENTRY PASS</div>
+        <div class="entry">SAMPLE PASS</div>
     </header>
 
     <main class="pass-body">
-        <section class="left-panel">
-            <div class="participant-label">
-                ADMIT ONE - REGISTERED PARTICIPANT
-            </div>
-
+        <section class="left">
+            <div class="participant">SAMPLE PARTICIPANT PASS</div>
             <div class="name">{{ ticket.name }}</div>
 
             <div class="event-info">
-                <div class="event-date">
+                <div class="info-box">
                     <span class="info-label">EVENT DATE</span>
                     <div class="info-value">
                         {{ ticket.event_date_display }}
                     </div>
                 </div>
 
-                <div class="venue">
+                <div class="info-box">
                     <span class="info-label">VENUE</span>
                     <div class="info-value">{{ ticket.venue }}</div>
                 </div>
             </div>
 
             <div class="details">
-                <div class="item">
+                <div class="detail">
                     <small>COURSE</small>
                     <strong>{{ ticket.course }}</strong>
                 </div>
 
-                <div class="item">
+                <div class="detail">
                     <small>BRANCH</small>
                     <strong>{{ ticket.branch }}</strong>
                 </div>
 
-                <div class="item">
+                <div class="detail">
                     <small>YEAR OF STUDY</small>
                     <strong>{{ ticket.year }}</strong>
                 </div>
@@ -765,34 +757,36 @@ PASS_HTML = """
         </div>
 
         <aside class="qr-panel">
-            <div class="pill">E-PASS</div>
-            <h2>GATE VERIFICATION</h2>
+            <div class="pill">E-PASS DEMO</div>
+            <h2>QR CODE DETAILS</h2>
 
             <div class="qr-box">
                 <img class="qr-image"
                      src="data:image/png;base64,{{ ticket.qr }}"
-                     alt="QR code for pass preview">
+                     alt="Sample QR code">
 
                 <div class="ticket-number">{{ ticket.id }}</div>
             </div>
 
             <p class="hint">
-                Scan this QR code to view the saved pass details.
+                Scan this QR code to view the saved sample details.
             </p>
 
             <div class="sample-note">
-                SAMPLE PREVIEW — NOT VALID FOR EVENT ENTRY
+                SAMPLE DEMONSTRATION — NOT VALID FOR EVENT ENTRY
             </div>
 
             <button class="button no-print" onclick="window.print()">
-                Print / Save PDF
+                Print Sample / Save PDF
             </button>
         </aside>
     </main>
 </div>
+
 </body>
 </html>
 """
+
 
 VERIFY_HTML = """
 <!doctype html>
@@ -800,10 +794,11 @@ VERIFY_HTML = """
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pass Preview Details</title>
+<title>Sample QR Record</title>
 <style>{{ css }}</style>
 </head>
 <body>
+
 <div class="verify-card">
     {% if logo_exists %}
     <img class="verify-logo" src="{{ logo_url }}" alt="NIET logo">
@@ -851,35 +846,37 @@ VERIFY_HTML = """
         </div>
 
         <div class="verify-note">
-            SAMPLE PREVIEW — NOT VALID FOR EVENT ENTRY.
-            This page does not confirm official ticket validity.
+            This is a demonstration record, not an official ticket
+            verification. Event entry must be confirmed by the
+            event organiser.
         </div>
 
         <a class="button"
            href="{{ url_for('show_pass', ticket_id=ticket.id) }}">
-            View e-pass
+            View sample e-pass
         </a>
 
     {% else %}
         <div class="status-icon invalid">×</div>
-        <h1>Ticket Not Found</h1>
+        <h1>Record Not Found</h1>
 
         <p class="verify-message">
             No matching record was found in this demonstration app.
         </p>
 
         <a class="button" href="{{ url_for('home') }}">
-            Back to registration
+            Back to sample registration
         </a>
     {% endif %}
 </div>
+
 </body>
 </html>
 """
 
 
-def get_logo_info():
-    """Check whether the logo image exists in the static folder."""
+def logo_info():
+    """Static folder mein logo file check karta hai."""
     path = os.path.join(
         app.static_folder or "static",
         LOGO_FILENAME
@@ -896,12 +893,12 @@ def get_logo_info():
 
 
 def render_page(template, **context):
-    """Pass common template variables to each page."""
-    logo_exists, logo_url = get_logo_info()
+    """Har HTML page ko common variables deta hai."""
+    exists, logo_url = logo_info()
 
     context.update({
         "css": CSS,
-        "logo_exists": logo_exists,
+        "logo_exists": exists,
         "logo_url": logo_url,
         "event_name": EVENT_NAME,
         "subtitle": EVENT_SUBTITLE,
@@ -921,38 +918,35 @@ def home():
     if request.method == "GET":
         return render_page(FORM_HTML)
 
-    name = request.form.get("name", "").strip()
-    raw_date = request.form.get("event_date", "").strip()
-    venue = request.form.get("venue", "").strip()
-    course = request.form.get("course", "").strip()
-    branch = request.form.get("branch", "").strip()
-    year = request.form.get("year", "").strip()
+    fields = {
+        "name": request.form.get("name", "").strip(),
+        "event_date": request.form.get("event_date", "").strip(),
+        "venue": request.form.get("venue", "").strip(),
+        "course": request.form.get("course", "").strip(),
+        "branch": request.form.get("branch", "").strip(),
+        "year": request.form.get("year", "").strip(),
+    }
 
-    if not all([name, raw_date, venue, course, branch, year]):
+    if not all(fields.values()):
         return "Please complete every field.", 400
 
     try:
-        parsed_date = date.fromisoformat(raw_date)
+        parsed_date = date.fromisoformat(fields["event_date"])
     except ValueError:
         return "Please enter a valid event date.", 400
 
-    # Clearly marked sample ticket ID.
-    ticket_id = "NIET-PREVIEW-" + secrets.token_hex(5).upper()
+    # Sample ticket ID — official ticket number nahi hai.
+    ticket_id = "NIET-SAMPLE-" + secrets.token_hex(5).upper()
 
     ticket = {
+        **fields,
         "id": ticket_id,
-        "name": name,
-        "event_date": raw_date,
         "event_date_display": parsed_date.strftime("%d %b %Y"),
-        "venue": venue,
-        "course": course,
-        "branch": branch,
-        "year": year,
     }
 
     tickets[ticket_id] = ticket
 
-    # QR code opens the ticket verification route.
+    # QR scan karne par /verify/<ticket_id> khulega.
     verification_url = url_for(
         "verify",
         ticket_id=ticket_id,
@@ -972,45 +966,37 @@ def home():
 
 @app.get("/pass/<ticket_id>")
 def show_pass(ticket_id):
-    """Display an existing sample pass."""
+    """Existing sample pass ko dobara display karta hai."""
     ticket = tickets.get(ticket_id)
 
     if not ticket:
         abort(
             404,
-            description="Preview ticket not found. Generate a new preview."
+            description="Sample pass not found. Generate a new sample."
         )
 
     return render_page(PASS_HTML, ticket=ticket)
 
 
-@app.route("/verify/<ticket_id>", methods=["GET"])
+@app.get("/verify/<ticket_id>")
 def verify(ticket_id):
     """
     QR verification route.
 
-    The QR code contains a URL like:
-    https://your-domain/verify/NIET-PREVIEW-XXXXXXXXXX
+    Example:
+    /verify/NIET-SAMPLE-XXXXXXXXXX
     """
     ticket = tickets.get(ticket_id)
 
     if ticket is None:
-        return render_page(
-            VERIFY_HTML,
-            ticket=None
-        ), 404
+        return render_page(VERIFY_HTML, ticket=None), 404
 
-    return render_page(
-        VERIFY_HTML,
-        ticket=ticket
-    )
+    return render_page(VERIFY_HTML, ticket=ticket), 200
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", "10000"))
-
     app.run(
         host="0.0.0.0",
-        port=port,
+        port=int(os.environ.get("PORT", "10000")),
         debug=False
     )
