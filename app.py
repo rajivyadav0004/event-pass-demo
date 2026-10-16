@@ -7,7 +7,7 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# Demo storage
+# Demo ticket storage
 tickets = {}
 
 # Event configuration
@@ -15,24 +15,33 @@ EVENT_NAME = "SILVERNOVA 2026"
 EVENT_SUBTITLE = "GARBA & DJ NIGHT"
 EVENT_DATE = "15 Oct 2026"
 
-LOGO_PATH = "NIET New Engineering Color Logo.jpg"
+# Logo file inside the static folder
+LOGO_PATH = "niet-logo.jpg"
+
+MAROON = "#701329"
+ORANGE = "#e87516"
+CREAM = "#fff9e9"
+GOLD = "#d6b75b"
 
 
-# ==================================================
+# =====================================================
 # LANDSCAPE EVENT PASS
-# ==================================================
+# =====================================================
 
 PASS_HTML = """
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 <meta charset="UTF-8">
+
 <meta name="viewport"
       content="width=device-width, initial-scale=1">
 
-<title>Event Pass Demo</title>
+<title>SilverNova 2026 - Demo Pass</title>
 
 <style>
+
 * {
     box-sizing: border-box;
 }
@@ -41,40 +50,67 @@ body {
     margin: 0;
     padding: 20px;
     background: #eef1f6;
-    font-family: Arial, sans-serif;
-    color: #701329;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #35111b;
 }
 
 .pass {
     width: 100%;
     max-width: 1200px;
     margin: 15px auto;
-    background: #fff9e9;
-    border: 4px solid #d6b75b;
+    background: {{ cream }};
+    border: 4px solid {{ gold }};
     border-radius: 22px;
     overflow: hidden;
-    position: relative;
 }
+
+/* Demo notice */
 
 .demo-label {
     text-align: center;
-    padding: 6px;
+    padding: 7px;
     background: #fff0c2;
-    color: #701329;
+    color: {{ maroon }};
     font-size: 11px;
     font-weight: bold;
     letter-spacing: 1px;
 }
 
+/* Header */
+
 .header {
     display: grid;
-    grid-template-columns: 270px 1fr 175px;
+    grid-template-columns: 270px minmax(0, 1fr) 175px;
     align-items: center;
     gap: 25px;
     padding: 22px 28px;
-    background: #701329;
+    background: {{ maroon }};
     color: #ffe7a0;
+    border-top: 7px solid #e8a02d;
     border-bottom: 7px solid #e8a02d;
+    position: relative;
+}
+
+/* Decorative coloured line */
+
+.header::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -7px;
+    height: 7px;
+    background: repeating-linear-gradient(
+        90deg,
+        #e8a02d 0px,
+        #e8a02d 10px,
+        #fff0c2 10px,
+        #fff0c2 17px,
+        #a83c78 17px,
+        #a83c78 24px,
+        #fff0c2 24px,
+        #fff0c2 31px
+    );
 }
 
 .logo-box {
@@ -88,6 +124,7 @@ body {
 }
 
 .logo-box img {
+    display: block;
     width: 100%;
     max-width: 245px;
     height: 90px;
@@ -96,22 +133,27 @@ body {
 
 .event-title {
     font-weight: normal;
+    min-width: 0;
 }
 
 .event-title .present {
     font-size: 16px;
+    font-weight: normal;
+    color: #ffe7a0;
     margin-bottom: 8px;
 }
 
 .event-title h1 {
     font-size: 34px;
     font-weight: normal;
+    color: white;
     margin: 0 0 8px;
 }
 
 .event-title p {
     font-size: 20px;
     font-weight: normal;
+    color: #ffe7a0;
     margin: 0;
 }
 
@@ -122,24 +164,27 @@ body {
     padding: 14px 10px;
     font-size: 17px;
     font-weight: normal;
+    color: white;
 }
+
+/* Main content */
 
 .pass-content {
     display: grid;
-    grid-template-columns: 1fr 290px;
+    grid-template-columns: minmax(0, 1fr) 290px;
     gap: 28px;
     padding: 28px;
 }
 
 .left-section {
     padding-right: 25px;
-    border-right: 2px dashed #d6b75b;
+    border-right: 2px dashed {{ gold }};
 }
 
 .admit {
     font-size: 17px;
-    margin-bottom: 18px;
     font-weight: normal;
+    margin-bottom: 18px;
 }
 
 .name {
@@ -147,7 +192,10 @@ body {
     font-weight: bold;
     overflow-wrap: anywhere;
     margin-bottom: 25px;
+    color: {{ maroon }};
 }
+
+/* Date and event boxes */
 
 .event-info {
     display: grid;
@@ -161,25 +209,32 @@ body {
     padding: 22px;
     border-radius: 18px;
     color: white;
-    background: #701329;
     min-height: 115px;
 }
 
+.date-box {
+    background: {{ maroon }};
+}
+
 .event-box {
-    background: #e87516;
+    background: {{ orange }};
 }
 
 .field-label {
     font-size: 12px;
+    font-weight: normal;
     margin-bottom: 12px;
     color: inherit;
-    opacity: 0.85;
+    opacity: 0.9;
 }
 
 .field-value {
     font-size: 20px;
+    font-weight: normal;
     overflow-wrap: anywhere;
 }
+
+/* Course, branch and year */
 
 .details {
     display: grid;
@@ -205,6 +260,8 @@ body {
     font-size: 17px;
 }
 
+/* QR section */
+
 .right-section {
     text-align: center;
     padding: 0 4px;
@@ -212,7 +269,7 @@ body {
 
 .epass {
     display: inline-block;
-    background: #701329;
+    background: {{ maroon }};
     color: white;
     border-radius: 25px;
     padding: 12px 35px;
@@ -224,6 +281,7 @@ body {
     font-size: 19px;
     font-weight: normal;
     margin: 8px 0 20px;
+    color: {{ maroon }};
 }
 
 .qr-box {
@@ -243,6 +301,7 @@ body {
 .ticket-number {
     font-size: 14px;
     font-weight: bold;
+    color: {{ maroon }};
     margin-top: 14px;
     overflow-wrap: anywhere;
 }
@@ -254,36 +313,35 @@ body {
     line-height: 1.5;
 }
 
-.btn {
+.btn,
+.print-button {
     display: block;
     width: 100%;
-    padding: 13px;
+    padding: 14px;
     margin-top: 12px;
-    background: #701329;
+    background: {{ maroon }};
     color: white;
+    border: none;
     border-radius: 7px;
     text-decoration: none;
     font-size: 14px;
-}
-
-button {
-    display: block;
-    width: calc(100% - 56px);
-    margin: 0 28px 25px;
-    padding: 14px;
-    border: none;
-    border-radius: 8px;
-    background: #701329;
-    color: white;
-    font-size: 16px;
+    text-align: center;
     cursor: pointer;
 }
 
+/* Responsive layout */
+
 @media (max-width: 760px) {
+
+    body {
+        padding: 10px;
+    }
+
     .header {
         grid-template-columns: 1fr;
         text-align: center;
         gap: 15px;
+        padding: 20px;
     }
 
     .logo-box {
@@ -296,13 +354,18 @@ button {
         font-size: 28px;
     }
 
+    .event-title p {
+        font-size: 18px;
+    }
+
     .pass-content {
         grid-template-columns: 1fr;
+        padding: 18px;
     }
 
     .left-section {
         border-right: none;
-        border-bottom: 2px dashed #d6b75b;
+        border-bottom: 2px dashed {{ gold }};
         padding-right: 0;
         padding-bottom: 25px;
     }
@@ -316,9 +379,16 @@ button {
         width: 100%;
         margin: auto;
     }
+
+    .name {
+        font-size: 30px;
+    }
 }
 
+/* Landscape print */
+
 @media print {
+
     @page {
         size: A4 landscape;
         margin: 5mm;
@@ -326,7 +396,10 @@ button {
 
     body {
         padding: 0;
+        margin: 0;
         background: white;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
     }
 
     .pass {
@@ -338,14 +411,8 @@ button {
         print-color-adjust: exact;
     }
 
-    .pass-content {
-        grid-template-columns: 1fr 250px;
-        gap: 18px;
-        padding: 20px;
-    }
-
     .header {
-        grid-template-columns: 230px 1fr 150px;
+        grid-template-columns: 230px minmax(0, 1fr) 150px;
         padding: 16px 20px;
         gap: 18px;
     }
@@ -362,16 +429,22 @@ button {
         font-size: 30px;
     }
 
+    .pass-content {
+        grid-template-columns: minmax(0, 1fr) 250px;
+        gap: 18px;
+        padding: 20px;
+    }
+
     .item {
         padding: 12px;
         min-height: 80px;
     }
 
-    button,
-    .btn {
+    .print-button {
         display: none;
     }
 }
+
 </style>
 </head>
 
@@ -392,9 +465,15 @@ button {
         </div>
 
         <div class="event-title">
-            <div class="present">NIET PRESENTS</div>
+
+            <div class="present">
+                NIET PRESENTS
+            </div>
+
             <h1>{{ event_name }}</h1>
+
             <p>{{ event_subtitle }}</p>
+
         </div>
 
         <div class="entry-label">
@@ -411,22 +490,34 @@ button {
                 ADMIT ONE - REGISTERED PARTICIPANT
             </div>
 
-            <div class="name">{{ ticket.name }}</div>
+            <div class="name">
+                {{ ticket.name }}
+            </div>
 
             <div class="event-info">
 
                 <div class="date-box">
-                    <div class="field-label">EVENT DATE</div>
+
+                    <div class="field-label">
+                        EVENT DATE
+                    </div>
+
                     <div class="field-value">
                         {{ ticket.event_date }}
                     </div>
+
                 </div>
 
                 <div class="event-box">
-                    <div class="field-label">EVENT</div>
+
+                    <div class="field-label">
+                        EVENT
+                    </div>
+
                     <div class="field-value">
                         {{ event_name }}
                     </div>
+
                 </div>
 
             </div>
@@ -434,18 +525,39 @@ button {
             <div class="details">
 
                 <div class="item">
-                    <div class="field-label">COURSE</div>
-                    <div class="field-value">{{ ticket.course }}</div>
+
+                    <div class="field-label">
+                        COURSE
+                    </div>
+
+                    <div class="field-value">
+                        {{ ticket.course }}
+                    </div>
+
                 </div>
 
                 <div class="item">
-                    <div class="field-label">BRANCH</div>
-                    <div class="field-value">{{ ticket.branch }}</div>
+
+                    <div class="field-label">
+                        BRANCH
+                    </div>
+
+                    <div class="field-value">
+                        {{ ticket.branch }}
+                    </div>
+
                 </div>
 
                 <div class="item">
-                    <div class="field-label">YEAR OF STUDY</div>
-                    <div class="field-value">{{ ticket.year }}</div>
+
+                    <div class="field-label">
+                        YEAR OF STUDY
+                    </div>
+
+                    <div class="field-value">
+                        {{ ticket.year }}
+                    </div>
+
                 </div>
 
             </div>
@@ -454,7 +566,9 @@ button {
 
         <div class="right-section">
 
-            <div class="epass">E-PASS</div>
+            <div class="epass">
+                E-PASS
+            </div>
 
             <h2>GATE VERIFICATION</h2>
 
@@ -462,7 +576,7 @@ button {
 
                 <img
                     src="data:image/png;base64,{{ ticket.qr }}"
-                    alt="Demo QR code">
+                    alt="Demo verification QR code">
 
                 <div class="ticket-number">
                     {{ ticket.id }}
@@ -471,21 +585,24 @@ button {
             </div>
 
             <div class="scan-text">
-                Scan this QR code to view demo registration details.
+                Scan this QR code at the NIET entry gate.
+                Demo verification only.
             </div>
 
             <a class="btn"
-               href="{{ url_for('verify', ticket_id=ticket.id) }}">
-                Open verification page
+               href="{{ url_for('verify',
+                                ticket_id=ticket.id) }}">
+                Open demo verification
             </a>
+
+            <button class="print-button"
+                    onclick="window.print()">
+                Print / Save PDF
+            </button>
 
         </div>
 
     </div>
-
-    <button onclick="window.print()">
-        Print / Save PDF
-    </button>
 
 </div>
 
@@ -494,13 +611,14 @@ button {
 """
 
 
-# ==================================================
-# QR SCANNER VERIFICATION PAGE
-# ==================================================
+# =====================================================
+# QR VERIFICATION PAGE
+# =====================================================
 
 VERIFY_HTML = """
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 
 <meta charset="UTF-8">
@@ -511,6 +629,7 @@ VERIFY_HTML = """
 <title>Demo Ticket Verification</title>
 
 <style>
+
 * {
     box-sizing: border-box;
 }
@@ -519,13 +638,13 @@ body {
     margin: 0;
     padding: 20px;
     background: #eef1f6;
-    font-family: Arial, sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
     color: #35111b;
 }
 
 .card {
-    max-width: 650px;
-    margin: 20px auto;
+    max-width: 480px;
+    margin: 25px auto;
     padding: 28px;
     background: white;
     border-radius: 22px;
@@ -541,6 +660,7 @@ body {
 }
 
 .logo img {
+    display: block;
     width: 100%;
     max-width: 380px;
     height: 115px;
@@ -549,20 +669,28 @@ body {
 
 .demo-label {
     text-align: center;
-    padding: 8px;
+    padding: 9px;
     background: #fff0c2;
     color: #701329;
     font-size: 11px;
     font-weight: bold;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     margin-bottom: 22px;
+    border-radius: 7px;
+}
+
+.status {
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    margin: 20px 0;
 }
 
 .name {
     text-align: center;
     font-size: 30px;
     color: #172f43;
-    margin: 15px 0 25px;
+    margin: 20px 0 25px;
     overflow-wrap: anywhere;
 }
 
@@ -584,13 +712,14 @@ body {
 }
 
 .value {
-    font-size: 20px;
+    font-size: 19px;
     font-weight: bold;
 }
 
 .ticket-number {
     color: #701329;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
+    overflow-wrap: anywhere;
 }
 
 .back {
@@ -605,17 +734,10 @@ body {
     font-weight: bold;
 }
 
-@media (min-width: 700px) {
-    .details {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-    }
-}
-
 @media print {
+
     @page {
-        size: A4 landscape;
+        size: A4 portrait;
         margin: 10mm;
     }
 
@@ -624,7 +746,6 @@ body {
     }
 
     .card {
-        max-width: none;
         box-shadow: none;
     }
 
@@ -632,7 +753,9 @@ body {
         display: none;
     }
 }
+
 </style>
+
 </head>
 
 <body>
@@ -640,9 +763,11 @@ body {
 <div class="card">
 
     <div class="logo">
+
         <img
             src="{{ url_for('static', filename=logo) }}"
             alt="NIET logo">
+
     </div>
 
     <div class="demo-label">
@@ -651,56 +776,89 @@ body {
 
     {% if ticket %}
 
-        <h2 class="name">{{ ticket.name }}</h2>
+        <div class="status">
+            Demo Ticket Details
+        </div>
 
-        <div class="details">
+        <h2 class="name">
+            {{ ticket.name }}
+        </h2>
 
-            <div class="row">
-                <span class="label">COURSE</span>
-                <div class="value">{{ ticket.course }}</div>
+        <div class="row">
+
+            <span class="label">COURSE</span>
+
+            <div class="value">
+                {{ ticket.course }}
             </div>
 
-            <div class="row">
-                <span class="label">BRANCH</span>
-                <div class="value">{{ ticket.branch }}</div>
+        </div>
+
+        <div class="row">
+
+            <span class="label">BRANCH</span>
+
+            <div class="value">
+                {{ ticket.branch }}
             </div>
 
-            <div class="row">
-                <span class="label">YEAR OF STUDY</span>
-                <div class="value">{{ ticket.year }}</div>
+        </div>
+
+        <div class="row">
+
+            <span class="label">YEAR OF STUDY</span>
+
+            <div class="value">
+                {{ ticket.year }}
             </div>
 
-            <div class="row">
-                <span class="label">EVENT</span>
-                <div class="value">{{ event_name }}</div>
+        </div>
+
+        <div class="row">
+
+            <span class="label">EVENT</span>
+
+            <div class="value">
+                {{ event_name }}
             </div>
 
-            <div class="row">
-                <span class="label">EVENT DATE</span>
-                <div class="value">{{ ticket.event_date }}</div>
+        </div>
+
+        <div class="row">
+
+            <span class="label">EVENT DATE</span>
+
+            <div class="value">
+                {{ ticket.event_date }}
             </div>
 
-            <div class="row">
-                <span class="label">TICKET NUMBER</span>
-                <div class="value ticket-number">
-                    {{ ticket.id }}
-                </div>
+        </div>
+
+        <div class="row">
+
+            <span class="label">TICKET NUMBER</span>
+
+            <div class="value ticket-number">
+                {{ ticket.id }}
             </div>
 
         </div>
 
     {% else %}
 
-        <h2 class="name">Ticket not found</h2>
+        <div class="status">
+            Ticket Not Found
+        </div>
 
         <p>
-            This demo ticket could not be found.
-            Please generate a new demo pass.
+            This demo ticket could not be found in the
+            current application session.
         </p>
 
     {% endif %}
 
-    <a class="back" href="{{ url_for('home') }}">
+    <a class="back"
+       href="{{ url_for('home') }}">
         Back to registration
     </a>
 
@@ -711,13 +869,14 @@ body {
 """
 
 
-# ==================================================
+# =====================================================
 # REGISTRATION FORM
-# ==================================================
+# =====================================================
 
 FORM_HTML = """
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 
 <meta charset="UTF-8">
@@ -725,14 +884,19 @@ FORM_HTML = """
 <meta name="viewport"
       content="width=device-width, initial-scale=1">
 
-<title>Event Pass Registration Demo</title>
+<title>SilverNova 2026 - Registration Demo</title>
 
 <style>
+
+* {
+    box-sizing: border-box;
+}
+
 body {
     margin: 0;
     padding: 20px;
     background: #eef1f6;
-    font-family: Arial, sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
     color: #35111b;
 }
 
@@ -742,6 +906,8 @@ body {
     padding: 25px;
     background: white;
     border-radius: 16px;
+    box-shadow: 0 8px 30px #0001;
+    border-top: 8px solid #701329;
 }
 
 .logo {
@@ -761,6 +927,10 @@ body {
     margin: 12px 0;
 }
 
+h2 {
+    text-align: center;
+}
+
 label {
     display: block;
     margin-top: 14px;
@@ -774,18 +944,21 @@ input, select {
     border: 1px solid #ccc;
     border-radius: 7px;
     font-size: 16px;
+    background: white;
 }
 
 button {
     width: 100%;
     padding: 14px;
-    margin-top: 20px;
+    margin-top: 22px;
     background: #701329;
     color: white;
     border: none;
     border-radius: 8px;
     font-size: 16px;
+    cursor: pointer;
 }
+
 </style>
 
 </head>
@@ -794,44 +967,74 @@ button {
 
 <div class="form-box">
 
-    <img class="logo"
-         src="{{ url_for('static', filename=logo) }}"
-         alt="NIET logo">
+    <img
+        class="logo"
+        src="{{ url_for('static', filename=logo) }}"
+        alt="NIET logo">
 
     <div class="demo-label">
-        EVENT PASS DEMO
+        EVENT REGISTRATION DEMO
     </div>
 
-    <h2>Registration Form</h2>
+    <h2>{{ event_name }}</h2>
 
-    <form method="POST">
+    <p style="text-align:center;">
+        {{ event_subtitle }}
+    </p>
+
+    <form method="POST"
+          action="{{ url_for('home') }}">
 
         <label>Full Name</label>
-        <input name="name" maxlength="100" required>
+
+        <input
+            name="name"
+            maxlength="100"
+            autocomplete="name"
+            required>
 
         <label>Event Date</label>
-        <input type="date" name="event_date"
-               value="2026-10-15" required>
+
+        <input
+            type="date"
+            name="event_date"
+            value="2026-10-15"
+            required>
 
         <label>Course</label>
+
         <select name="course" required>
+
             <option value="B.Tech">B.Tech</option>
+
             <option value="MBA">MBA</option>
+
             <option value="M.Tech">M.Tech</option>
+
             <option value="B.Pharm">B.Pharm</option>
+
         </select>
 
         <label>Branch</label>
-        <input name="branch"
-               placeholder="e.g. Biotechnology"
-               maxlength="100" required>
+
+        <input
+            name="branch"
+            placeholder="e.g. Biotechnology"
+            maxlength="100"
+            required>
 
         <label>Year of Study</label>
+
         <select name="year" required>
+
             <option>1st Year</option>
+
             <option>2nd Year</option>
+
             <option>3rd Year</option>
+
             <option>4th Year</option>
+
         </select>
 
         <button type="submit">
@@ -847,33 +1050,63 @@ button {
 """
 
 
-# ==================================================
+# =====================================================
 # HOME ROUTE
-# ==================================================
+# =====================================================
 
 @app.route("/", methods=["GET", "POST"])
 def home():
 
     if request.method == "POST":
 
-        name = request.form.get("name", "").strip()
-        raw_date = request.form.get("event_date", "").strip()
-        course = request.form.get("course", "").strip()
-        branch = request.form.get("branch", "").strip()
-        year = request.form.get("year", "").strip()
+        name = request.form.get(
+            "name", ""
+        ).strip()
 
-        if not all([name, raw_date, course, branch, year]):
+        raw_date = request.form.get(
+            "event_date", ""
+        ).strip()
+
+        course = request.form.get(
+            "course", ""
+        ).strip()
+
+        branch = request.form.get(
+            "branch", ""
+        ).strip()
+
+        year = request.form.get(
+            "year", ""
+        ).strip()
+
+        if not all([
+            name,
+            raw_date,
+            course,
+            branch,
+            year
+        ]):
             return "Please complete all fields.", 400
 
         try:
-            formatted_date = datetime.strptime(
+
+            parsed_date = datetime.strptime(
                 raw_date, "%Y-%m-%d"
-            ).strftime("%d %b %Y")
+            )
+
+            formatted_date = parsed_date.strftime(
+                "%d %b %Y"
+            )
+
         except ValueError:
+
             return "Invalid event date.", 400
 
-        # Demo ticket number
-        ticket_id = "NIET-" + secrets.token_hex(6).upper()
+        # Generate a unique demo ticket number
+        ticket_id = (
+            "NIET-" +
+            secrets.token_hex(6).upper()
+        )
 
         ticket = {
             "id": ticket_id,
@@ -881,25 +1114,32 @@ def home():
             "event_date": formatted_date,
             "course": course,
             "branch": branch,
-            "year": year,
+            "year": year
         }
 
-        # Generate QR containing verification URL
+        # Create QR code with the verification URL
         verification_url = url_for(
             "verify",
             ticket_id=ticket_id,
             _external=True
         )
 
-        qr = qrcode.make(verification_url)
+        qr = qrcode.make(
+            verification_url
+        )
 
         buffer = io.BytesIO()
-        qr.save(buffer, format="PNG")
+
+        qr.save(
+            buffer,
+            format="PNG"
+        )
 
         ticket["qr"] = base64.b64encode(
             buffer.getvalue()
         ).decode("utf-8")
 
+        # Store ticket for this running demo session
         tickets[ticket_id] = ticket
 
         return render_template_string(
@@ -907,18 +1147,24 @@ def home():
             ticket=ticket,
             logo=LOGO_PATH,
             event_name=EVENT_NAME,
-            event_subtitle=EVENT_SUBTITLE
+            event_subtitle=EVENT_SUBTITLE,
+            maroon=MAROON,
+            orange=ORANGE,
+            cream=CREAM,
+            gold=GOLD
         )
 
     return render_template_string(
         FORM_HTML,
-        logo=LOGO_PATH
+        logo=LOGO_PATH,
+        event_name=EVENT_NAME,
+        event_subtitle=EVENT_SUBTITLE
     )
 
 
-# ==================================================
+# =====================================================
 # QR VERIFICATION ROUTE
-# ==================================================
+# =====================================================
 
 @app.route("/verify/<ticket_id>")
 def verify(ticket_id):
@@ -933,11 +1179,12 @@ def verify(ticket_id):
     )
 
 
-# ==================================================
-# RUN APP
-# ==================================================
+# =====================================================
+# RUN APPLICATION
+# =====================================================
 
 if __name__ == "__main__":
+
     app.run(
         host="0.0.0.0",
         port=10000,
