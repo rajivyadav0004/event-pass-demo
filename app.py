@@ -674,7 +674,7 @@ FORM_HTML = """
         </select>
 
         <button class="button" type="submit">
-            Generate Sample Pass
+            Generate Entry Pass
         </button>
     </form>
 </div>
