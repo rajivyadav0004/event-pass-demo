@@ -3,34 +3,36 @@ import qrcode
 import io
 import base64
 import secrets
+import os
 from datetime import datetime
 
 app = Flask(__name__)
 
-# Demo ticket storage
+# =========================================================
+# CONFIGURATION
+# =========================================================
+
 tickets = {}
 
-# Event configuration
 EVENT_NAME = "SILVERNOVA 2026"
 EVENT_SUBTITLE = "GARBA & DJ NIGHT"
 EVENT_DATE = "16 Oct 2026"
 VENUE = "NIET Plot 19 Campus"
 
-# Logo file must be inside the static folder
+# Logo must exist inside the static folder.
 LOGO_PATH = "niet-logo.jpg"
 
-# Theme colours
+# Theme
 TEAL = "#168B87"
 BLUE = "#3268AD"
 NAVY = "#18365F"
 GOLD = "#D4AD54"
-WHITE = "#FFFFFF"
 BACKGROUND = "#EAF0F8"
 CREAM = "#F5F8FF"
 
 
 # =========================================================
-# EVENT PASS
+# EVENT PASS TEMPLATE
 # =========================================================
 
 PASS_HTML = """
@@ -40,7 +42,7 @@ PASS_HTML = """
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>SilverNova 2026 - Demo Pass</title>
+<title>SilverNova 2026 - Event Pass</title>
 
 <style>
 * {
@@ -65,7 +67,7 @@ body {
     overflow: hidden;
 }
 
-/* Header */
+/* HEADER */
 
 .header {
     position: relative;
@@ -73,7 +75,7 @@ body {
     grid-template-columns: 270px minmax(0, 1fr) 190px;
     align-items: center;
     gap: 25px;
-    padding: 22px 28px;
+    padding: 22px 28px 32px;
     background: linear-gradient(110deg, #168b87, #3268ad);
     border-top: 7px solid #e8c75a;
     color: white;
@@ -82,10 +84,11 @@ body {
 .header::after {
     content: "";
     position: absolute;
-    bottom: 0;
     left: 0;
     right: 0;
+    bottom: 0;
     height: 10px;
+
     background: repeating-linear-gradient(
         90deg,
         #f2d45d 0px,
@@ -97,11 +100,15 @@ body {
     );
 }
 
+/* LOGO */
+
 .logo-box {
+    width: 100%;
     min-height: 110px;
     padding: 12px;
     background: white;
     border-radius: 15px;
+
     display: flex;
     justify-content: center;
     align-items: center;
@@ -115,15 +122,24 @@ body {
     object-fit: contain;
 }
 
+.logo-fallback {
+    display: none;
+    color: #18365f;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* EVENT TITLE */
+
 .event-title {
     min-width: 0;
 }
 
 .present {
     margin-bottom: 8px;
-    color: white;
     font-size: 16px;
     font-weight: bold;
+    color: white;
 }
 
 .event-title h1 {
@@ -151,7 +167,7 @@ body {
     font-weight: bold;
 }
 
-/* Main layout */
+/* CONTENT */
 
 .pass-content {
     display: grid;
@@ -161,9 +177,65 @@ body {
 }
 
 .left-section {
+    position: relative;
     min-width: 0;
     padding-right: 25px;
-    border-right: 3px dashed #d4ad54;
+    border-right: none;
+}
+
+/* GOLDEN DOTTED SEPARATOR WITH CIRCLES */
+
+.left-section::after {
+    content: "";
+    position: absolute;
+    top: -28px;
+    bottom: -28px;
+    right: -14px;
+    width: 3px;
+
+    background: repeating-linear-gradient(
+        to bottom,
+        #d4ad54 0px,
+        #d4ad54 9px,
+        transparent 9px,
+        transparent 19px
+    );
+}
+
+.left-section::before {
+    content: "";
+    position: absolute;
+    z-index: 2;
+    top: -34px;
+    right: -23px;
+
+    width: 20px;
+    height: 20px;
+    border: 3px solid #d4ad54;
+    border-radius: 50%;
+    background: #f5f8ff;
+
+    box-shadow: 0 calc(100% + 0px) 0 -3px #f5f8ff;
+}
+
+/* Separator end circle */
+
+.pass-content {
+    position: relative;
+}
+
+.separator-end {
+    position: absolute;
+    z-index: 3;
+    left: calc(100% - 314px);
+    bottom: 10px;
+
+    width: 20px;
+    height: 20px;
+    border: 3px solid #d4ad54;
+    border-radius: 50%;
+    background: #f5f8ff;
+    transform: translateX(-50%);
 }
 
 .admit {
@@ -181,7 +253,7 @@ body {
     overflow-wrap: anywhere;
 }
 
-/* Date and venue */
+/* DATE AND VENUE */
 
 .event-info {
     display: grid;
@@ -203,7 +275,6 @@ body {
     margin-bottom: 15px;
     font-size: 14px;
     font-weight: bold;
-    opacity: 0.95;
 }
 
 .field-value {
@@ -212,7 +283,7 @@ body {
     overflow-wrap: anywhere;
 }
 
-/* Student details */
+/* STUDENT DETAILS */
 
 .details {
     display: grid;
@@ -242,7 +313,7 @@ body {
     font-weight: bold;
 }
 
-/* QR section */
+/* QR SECTION */
 
 .right-section {
     min-width: 0;
@@ -298,17 +369,7 @@ body {
     line-height: 1.6;
 }
 
-.demo-note {
-    margin-top: 12px;
-    padding: 10px;
-    background: #fff3d7;
-    border-radius: 8px;
-    color: #765b20;
-    font-size: 12px;
-    line-height: 1.5;
-}
-
-/* Mobile */
+/* MOBILE */
 
 @media (max-width: 760px) {
     body {
@@ -318,7 +379,7 @@ body {
     .header {
         grid-template-columns: 1fr;
         gap: 15px;
-        padding: 20px;
+        padding: 20px 20px 30px;
         text-align: center;
     }
 
@@ -344,15 +405,20 @@ body {
 
     .pass-content {
         grid-template-columns: 1fr;
-        gap: 25px;
+        gap: 30px;
         padding: 18px;
     }
 
     .left-section {
         padding-right: 0;
         padding-bottom: 25px;
-        border-right: none;
         border-bottom: 3px dashed #d4ad54;
+    }
+
+    .left-section::after,
+    .left-section::before,
+    .separator-end {
+        display: none;
     }
 
     .name {
@@ -367,10 +433,7 @@ body {
 }
 
 @media (max-width: 420px) {
-    .event-info {
-        grid-template-columns: 1fr;
-    }
-
+    .event-info,
     .details {
         grid-template-columns: 1fr;
     }
@@ -393,17 +456,19 @@ body {
     <header class="header">
 
         <div class="logo-box">
+
             <img
                 src="{{ url_for('static', filename=logo) }}"
-                alt="NIET logo"
-                onerror="this.style.display='none';
-                         document.getElementById('logo-error')
-                         .style.display='block';">
+                alt="NIET Greater Noida logo"
+                onerror="
+                    this.style.display='none';
+                    this.nextElementSibling.style.display='block';
+                ">
 
-            <span id="logo-error"
-                  style="display:none; color:#18365f;">
-                NIET logo file not found
-            </span>
+            <div class="logo-fallback">
+                NIET Greater Noida
+            </div>
+
         </div>
 
         <div class="event-title">
@@ -424,7 +489,9 @@ body {
                 ADMIT ONE - REGISTERED PARTICIPANT
             </div>
 
-            <div class="name">{{ ticket.name }}</div>
+            <div class="name">
+                {{ ticket.name }}
+            </div>
 
             <div class="event-info">
 
@@ -471,17 +538,19 @@ body {
 
         </section>
 
+        <div class="separator-end"></div>
+
         <aside class="right-section">
 
             <div class="epass">E-PASS</div>
 
-            <h2>GATE VERIFICATION</h2>
+            <h2>NIET ENTRY GATE</h2>
 
             <div class="qr-box">
 
                 <img
                     src="data:image/png;base64,{{ ticket.qr }}"
-                    alt="Demo ticket QR code">
+                    alt="QR code for demo ticket">
 
                 <div class="ticket-number">
                     {{ ticket.id }}
@@ -490,12 +559,7 @@ body {
             </div>
 
             <div class="scan-text">
-                Scan this QR code to view demo ticket details.
-            </div>
-
-            <div class="demo-note">
-                DEMO PASS — NOT VALID FOR ENTRY.
-                This page does not confirm official admission.
+                Scan this QR code at the NIET entry gate.
             </div>
 
         </aside>
@@ -521,7 +585,7 @@ VERIFY_HTML = """
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>SilverNova 2026 - Demo Verification</title>
+<title>NIET Entry Gate - Ticket Lookup</title>
 
 <style>
 * {
@@ -541,7 +605,7 @@ body {
     max-width: 480px;
     margin: 25px auto;
     padding: 28px;
-    background: #ffffff;
+    background: white;
     border-radius: 24px;
     border-top: 8px solid #21844d;
     box-shadow: 0 8px 30px #0001;
@@ -579,16 +643,16 @@ body {
 
 h1 {
     margin: 20px 0 10px;
-    color: #321e1b;
+    color: #18365f;
     text-align: center;
-    font-size: 34px;
+    font-size: 30px;
 }
 
 .subtitle {
     margin: 0 0 25px;
-    color: #444;
+    color: #526680;
     text-align: center;
-    font-size: 17px;
+    font-size: 16px;
     line-height: 1.5;
 }
 
@@ -638,27 +702,15 @@ h1 {
     overflow-wrap: anywhere;
 }
 
-.demo-status {
+.notice {
     margin-top: 22px;
-    padding: 16px;
+    padding: 15px;
     background: #fff3d7;
     color: #765b20;
     border-radius: 12px;
-    font-size: 15px;
+    font-size: 14px;
     line-height: 1.6;
     text-align: center;
-}
-
-.back {
-    display: block;
-    margin-top: 22px;
-    padding: 15px;
-    background: #eaf0f8;
-    color: #18365f;
-    border-radius: 12px;
-    text-align: center;
-    text-decoration: none;
-    font-weight: bold;
 }
 
 @media (max-width: 420px) {
@@ -671,7 +723,7 @@ h1 {
     }
 
     h1 {
-        font-size: 28px;
+        font-size: 26px;
     }
 
     .name {
@@ -687,50 +739,63 @@ h1 {
 <div class="card">
 
     <div class="logo">
+
         <img
             src="{{ url_for('static', filename=logo) }}"
-            alt="NIET logo">
+            alt="NIET Greater Noida logo"
+            onerror="this.style.display='none';">
+
     </div>
+
+    <div class="status-icon">✓</div>
+
+    <h1>NIET ENTRY GATE</h1>
 
     {% if ticket %}
 
-        <div class="status-icon">✓</div>
-
-        <h1>Demo QR</h1>
-
         <p class="subtitle">
-            The QR code matches a ticket created by this
-            demonstration application. This is not official
-            NIET ticket authentication.
+            Ticket information
         </p>
 
-        <h2 class="name">{{ ticket.name }}</h2>
+        <h2 class="name">
+            {{ ticket.name }}
+        </h2>
 
         <div class="details">
 
             <div class="row">
                 <span class="label">COURSE</span>
-                <div class="value">{{ ticket.course }}</div>
+                <div class="value">
+                    {{ ticket.course }}
+                </div>
             </div>
 
             <div class="row">
                 <span class="label">BRANCH</span>
-                <div class="value">{{ ticket.branch }}</div>
+                <div class="value">
+                    {{ ticket.branch }}
+                </div>
             </div>
 
             <div class="row">
                 <span class="label">YEAR OF STUDY</span>
-                <div class="value">{{ ticket.year }}</div>
+                <div class="value">
+                    {{ ticket.year }}
+                </div>
             </div>
 
             <div class="row">
                 <span class="label">VENUE</span>
-                <div class="value">{{ venue }}</div>
+                <div class="value">
+                    {{ venue }}
+                </div>
             </div>
 
             <div class="row">
                 <span class="label">EVENT DATE</span>
-                <div class="value">{{ ticket.event_date }}</div>
+                <div class="value">
+                    {{ ticket.event_date }}
+                </div>
             </div>
 
             <div class="row">
@@ -742,28 +807,18 @@ h1 {
 
         </div>
 
-        <div class="demo-status">
-            DEMO VERIFICATION ONLY.
-            This page does not confirm official entry
-            or admission to the event.
+        <div class="notice">
+            This page displays information from the
+            demonstration application. Official ticket
+            validity must be confirmed by the event organiser.
         </div>
-
-        <a class="back" href="{{ url_for('home') }}">
-            Back to registration
-        </a>
 
     {% else %}
 
-        <h1>Ticket Not Found</h1>
-
         <p class="subtitle">
-            This demo ticket is unavailable in the current
-            application session.
+            Ticket not found. This ticket may not exist
+            in the current application session.
         </p>
-
-        <a class="back" href="{{ url_for('home') }}">
-            Back to registration
-        </a>
 
     {% endif %}
 
@@ -786,7 +841,7 @@ FORM_HTML = """
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>SilverNova 2026 - Registration Demo</title>
+<title>SilverNova 2026 Registration</title>
 
 <style>
 * {
@@ -829,16 +884,6 @@ h2 {
     text-align: center;
 }
 
-.notice {
-    margin: 18px 0;
-    padding: 12px;
-    background: #fff3d7;
-    color: #765b20;
-    border-radius: 8px;
-    font-size: 13px;
-    line-height: 1.5;
-}
-
 label {
     display: block;
     margin-top: 15px;
@@ -867,6 +912,16 @@ button {
     font-weight: bold;
     cursor: pointer;
 }
+
+.notice {
+    margin-top: 18px;
+    padding: 12px;
+    background: #fff3d7;
+    color: #765b20;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+}
 </style>
 
 </head>
@@ -878,15 +933,15 @@ button {
     <img
         class="logo"
         src="{{ url_for('static', filename=logo) }}"
-        alt="NIET logo">
+        alt="NIET Greater Noida logo">
 
     <h2>{{ event_name }}</h2>
 
     <p class="subtitle">{{ event_subtitle }}</p>
 
     <div class="notice">
-        Demonstration registration only.
-        This form does not register you for the official event.
+        Demonstration registration. Official admission
+        requires confirmation from the event organiser.
     </div>
 
     <form method="POST" action="{{ url_for('home') }}">
@@ -932,7 +987,7 @@ button {
         </select>
 
         <button type="submit">
-            Generate Demo Pass
+            Generate Pass Preview
         </button>
 
     </form>
@@ -945,7 +1000,7 @@ button {
 
 
 # =========================================================
-# HOME / REGISTRATION ROUTE
+# HOME ROUTE
 # =========================================================
 
 @app.route("/", methods=["GET", "POST"])
@@ -963,7 +1018,9 @@ def home():
             return "Please complete all fields.", 400
 
         try:
-            parsed_date = datetime.strptime(raw_date, "%Y-%m-%d")
+            parsed_date = datetime.strptime(
+                raw_date, "%Y-%m-%d"
+            )
             formatted_date = parsed_date.strftime("%d %b %Y")
 
         except ValueError:
@@ -980,9 +1037,6 @@ def home():
             "year": year,
         }
 
-        # QR code opens the verification route.
-        # The deployed site must be publicly accessible for
-        # scanning from another device.
         verification_url = url_for(
             "verify",
             ticket_id=ticket_id,
@@ -998,50 +1052,4 @@ def home():
             buffer.getvalue()
         ).decode("utf-8")
 
-        tickets[ticket_id] = ticket
-
-        return render_template_string(
-            PASS_HTML,
-            ticket=ticket,
-            logo=LOGO_PATH,
-            event_name=EVENT_NAME,
-            event_subtitle=EVENT_SUBTITLE,
-            venue=VENUE,
-        )
-
-    return render_template_string(
-        FORM_HTML,
-        logo=LOGO_PATH,
-        event_name=EVENT_NAME,
-        event_subtitle=EVENT_SUBTITLE,
-    )
-
-
-# =========================================================
-# QR VERIFICATION ROUTE
-# =========================================================
-
-@app.route("/verify/<ticket_id>")
-def verify(ticket_id):
-
-    ticket = tickets.get(ticket_id)
-
-    return render_template_string(
-        VERIFY_HTML,
-        ticket=ticket,
-        logo=LOGO_PATH,
-        event_name=EVENT_NAME,
-        venue=VENUE,
-    )
-
-
-# =========================================================
-# RUN APPLICATION
-# =========================================================
-
-if __name__ == "__main__":
-    app.run(
-        host="0.0.0.0",
-        port=10000,
-        debug=False
-    )
+     
